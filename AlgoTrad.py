@@ -35,16 +35,6 @@ def plot_bollinger_bands(df, ticker):
     fig.add_trace(go.Scatter(x=df.index, y=df['lower_band'], mode='lines', name='Lower Band'))
     return fig
 
-# Function to add Ichimoku Cloud to the dataframe
-def add_ichimoku_cloud(df):
-    # Implement Ichimoku Cloud functionality here
-    return df
-
-# Function to fetch sector-wise cumulative returns
-def fetch_sector_cum_returns(sector):
-    # Implement fetching sector-wise cumulative returns here
-    return None
-
 # Streamlit app
 def main():
     st.title('Stock Analysis App')
@@ -59,7 +49,6 @@ def main():
             if df is not None:
                 df = add_cumulative_return(df)
                 df = add_bollinger_bands(df)
-                df = add_ichimoku_cloud(df)
 
                 st.write(f'## Cumulative Return for {ticker}')
                 st.line_chart(df['cum_return'])
@@ -68,30 +57,6 @@ def main():
                 fig = plot_bollinger_bands(df, ticker)
                 st.plotly_chart(fig)
 
-                st.write(f'## Ichimoku Cloud for {ticker}')
-                # Implement Ichimoku Cloud plotting here
-
                 st.write(df.tail())
             else:
                 st.warning(f'No data found for {ticker}')
-
-    # Portfolio optimization section
-    st.sidebar.title('Markowitz Portfolio Optimization')
-    selected_stocks = st.sidebar.multiselect('Select stocks for portfolio optimization:', ['AAPL', 'GOOGL', 'MSFT', 'AMZN'])
-    if selected_stocks:
-        num_portfolios = st.sidebar.number_input('Enter number of portfolios to simulate:', min_value=1, value=10000)
-        if st.sidebar.button('Run Portfolio Optimization'):
-            st.sidebar.write('Running portfolio optimization...')
-            # Implement portfolio optimization functionality
-            st.sidebar.write('Portfolio optimization completed!')
-
-    # Sector-wise cumulative returns section
-    st.sidebar.title('Sector-wise Cumulative Returns')
-    sectors = ['Technology', 'Healthcare', 'Finance', 'Consumer Discretionary', 'Utilities']
-    selected_sector = st.sidebar.selectbox('Select a sector:', sectors)
-    if selected_sector:
-        # Fetch sector-wise cumulative returns data
-        sector_cum_returns = fetch_sector_cum_returns(selected_sector)
-        if sector_cum_returns is not None:
-            # Visualize sector-wise cumulative returns
-            st.sidebar.write('Sector-wise cumulative returns')
