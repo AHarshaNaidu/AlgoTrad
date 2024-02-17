@@ -23,44 +23,45 @@ stock_exchange = st.sidebar.text_input("Enter Stock Exchange (e.g., NASDAQ, NYSE
 stocks_input = st.sidebar.text_input("Enter Stock Symbols (e.g., AAPL, MSFT, GOOGL)", '')
 
 # Convert the list of stocks to uppercase and split by comma
-stocks = [stock.strip().upper() for stock in stocks_input.split(',')]
+stocks = [stock.strip().upper() for stock in stocks_input.split(',') if stock.strip()]
 
-# Retrieve tickers data
-tickerData = yf.Tickers(" ".join(stocks))  # Concatenate the list of stocks into a space-separated string
-tickerDf = tickerData.history(period='1d', start=datetime.date(2019, 1, 1), end=datetime.date(2021, 1, 31))
+if stocks:
+    # Retrieve tickers data
+    tickerData = yf.Tickers(" ".join(stocks))  # Concatenate the list of stocks into a space-separated string
+    tickerDf = tickerData.history(period='1d', start=datetime.date(2019, 1, 1), end=datetime.date(2021, 1, 31))
 
-# Ticker information
-st.header('**Ticker information**')
-for stock in stocks:
-    string_logo = ''
-    if stock_exchange and stock:
-        ticker = yf.Ticker(f"{stock}.{stock_exchange}")
-        if 'logo_url' in ticker.info:
-            string_logo = '<img src=%s>' % ticker.info['logo_url']
-            st.markdown(string_logo, unsafe_allow_html=True)
+    # Ticker information
+    st.header('**Ticker information**')
+    for stock in stocks:
+        string_logo = ''
+        if stock_exchange and stock:
+            ticker = yf.Ticker(f"{stock}.{stock_exchange}")
+            if 'logo_url' in ticker.info:
+                string_logo = '<img src=%s>' % ticker.info['logo_url']
+                st.markdown(string_logo, unsafe_allow_html=True)
 
-        string_name = ticker.info.get('longName', 'N/A')
-        st.subheader(f"{stock} - {string_name}")
-    else:
-        st.subheader("Please enter both stock exchange and stock symbols")
+            string_name = ticker.info.get('longName', 'N/A')
+            st.subheader(f"{stock} - {string_name}")
+        else:
+            st.subheader("Please enter both stock exchange and stock symbols")
 
-# Ticker data
-st.header('**Ticker data**')
-st.write(tickerDf)
+    # Ticker data
+    st.header('**Ticker data**')
+    st.write(tickerDf)
 
-# Daily Returns
-st.header('**Daily Returns**')
-daily_returns = tickerDf['Close'].pct_change()
-st.write(daily_returns)
+    # Daily Returns
+    st.header('**Daily Returns**')
+    daily_returns = tickerDf['Close'].pct_change()
+    st.write(daily_returns)
 
-# Cumulative Returns
-st.header('**Cumulative Returns**')
-cumulative_returns = daily_returns.cumsum()
-st.write(cumulative_returns)
+    # Cumulative Returns
+    st.header('**Cumulative Returns**')
+    cumulative_returns = daily_returns.cumsum()
+    st.write(cumulative_returns)
 
-# Ichimoku Cloud
-st.header('**Ichimoku Cloud**')
-if len(stocks) > 0:
+    # Ichimoku Cloud
+    st.header('**Ichimoku Cloud**')
+
     # Calculate Ichimoku Cloud data
     indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
     tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
@@ -76,3 +77,5 @@ if len(stocks) > 0:
                                               name='Conversion Line')],
                              layout=go.Layout(title='Ichimoku Cloud'))
     st.plotly_chart(fig_ichimoku)
+else:
+    st.warning("Please enter at least one stock symbol.")
