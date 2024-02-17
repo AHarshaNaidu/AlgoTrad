@@ -4,20 +4,14 @@ import yfinance as yf
 from keras.models import load_model
 import streamlit as st
 import matplotlib.pyplot as plt
-import tempfile
-import os
+from sklearn.preprocessing import MinMaxScaler
 
-# Function to load the Keras model
-def load_keras_model():
-    model_path = os.path.join(tempfile.gettempdir(), 'Stock_Predictions_Model.keras')
-    with open(model_path, 'wb') as model_file:
-        model_file.write(st.secrets['model_file'].read())
-    return load_model(model_path)
+# Define the path to your Keras model file
+model_path = 'models/Stock_Predictions_Model.h5'
 
 # Load the Keras model
-model = load_keras_model()
+model = load_model(model_path)
 
-# Rest of your Streamlit app code remains the same
 st.header('Stock Market Predictor')
 
 stock = st.text_input('Enter Stock Symbol', 'GOOG')
@@ -32,7 +26,6 @@ st.write(data)
 data_train = pd.DataFrame(data.Close[0: int(len(data)*0.80)])
 data_test = pd.DataFrame(data.Close[int(len(data)*0.80):])
 
-from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler(feature_range=(0, 1))
 
 pas_100_days = data_train.tail(100)
