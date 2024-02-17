@@ -98,8 +98,15 @@ model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
 # Display actual vs predicted prices
-prediction_df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+prediction_df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred}, index=tickerDf.index[X_test.flatten()])
 st.write(prediction_df)
+
+# Plot actual vs predicted prices
+fig_pred = go.Figure()
+fig_pred.add_trace(go.Scatter(x=tickerDf.index, y=tickerDf['Close'], mode='lines', name='Actual'))
+fig_pred.add_trace(go.Scatter(x=prediction_df.index, y=prediction_df['Predicted'], mode='lines', name='Predicted'))
+fig_pred.update_layout(title='Actual vs Predicted Stock Prices', xaxis_title='Date', yaxis_title='Price')
+st.plotly_chart(fig_pred)
 
 # Evaluate the model
 mse = mean_squared_error(y_test, y_pred)
