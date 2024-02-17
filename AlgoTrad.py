@@ -5,11 +5,21 @@ from keras.models import load_model
 import streamlit as st
 import matplotlib.pyplot as plt
 
-model = load_model('C:\Python\Stock\Stock Predictions Model.keras')
+# Define a function to load the Keras model with caching
+@st.cache(allow_output_mutation=True)
+def load_keras_model(model_path):
+    return load_model(model_path)
 
+# Define the path to your Keras model
+model_path = 'C:\Python\Stock\Stock Predictions Model.keras'
+
+# Load the Keras model using the function
+model = load_keras_model(model_path)
+
+# Rest of your Streamlit app code
 st.header('Stock Market Predictor')
 
-stock =st.text_input('Enter Stock Symnbol', 'GOOG')
+stock = st.text_input('Enter Stock Symnbol', 'GOOG')
 start = '2012-01-01'
 end = '2022-12-31'
 
