@@ -1,94 +1,52 @@
-import numpy as np
-import pandas as pd
-import yfinance as yf
-from keras.models import load_model
 import streamlit as st
-import matplotlib.pyplot as plt
-import os
+import yfinance as yf
+import pandas as pd
+import cufflinks as cf
+import datetime
 
-# Define the absolute path to the model file
-model_path = os.path.abspath("AlgoTrad/Stock_Predictions_Model.h5")
+# App title
+st.markdown('''
+# Stock Price App
+Shown are the stock price data for query companies!
 
-# Write the model loading message outside the cached function
-st.write("Loading model from path:", model_path)
+**Credits**
+- App built by [Chanin Nantasenamat](https://medium.com/@chanin.nantasenamat) (aka [Data Professor](http://youtube.com/dataprofessor))
+- Built in `Python` using `streamlit`,`yfinance`, `cufflinks`, `pandas` and `datetime`
+''')
+st.write('---')
 
-# Function to load the Keras model
-@st.cache(allow_output_mutation=True)
-def load_keras_model():
-    model = load_model(model_path)
-    return model
+# Sidebar
+st.sidebar.subheader('Query parameters')
+start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
+end_date = st.sidebar.date_input("End date", datetime.date(2021, 1, 31))
 
-# Load the Keras model
-model = load_keras_model()
+# Retrieving tickers data
+ticker_list = pd.read_csv('https://raw.githubusercontent.com/dataprofessor/s-and-p-500-companies/master/data/constituents_symbols.txt')
+tickerSymbol = st.sidebar.selectbox('Stock ticker', ticker_list) # Select ticker symbol
+tickerData = yf.Ticker(tickerSymbol) # Get ticker data
+tickerDf = tickerData.history(period='1d', start=start_date, end=end_date) #get the historical prices for this ticker
 
-st.header('Stock Market Predictor')
+# Ticker information
+string_logo = '<img src=%s>' % tickerData.info['logo_url']
+st.markdown(string_logo, unsafe_allow_html=True)
 
-stock = st.text_input('Enter Stock Symbol', 'GOOG')
-start = '2012-01-01'
-end = '2022-12-31'
+string_name = tickerData.info['longName']
+st.header('**%s**' % string_name)
 
-data = yf.download(stock, start, end)
+string_summary = tickerData.info['longBusinessSummary']
+st.info(string_summary)
 
-st.subheader('Stock Data')
-st.write(data)
+# Ticker data
+st.header('**Ticker data**')
+st.write(tickerDf)
 
-data_train = pd.DataFrame(data.Close[0: int(len(data)*0.80)])
-data_test = pd.DataFrame(data.Close[int(len(data)*0.80):])
+# Bollinger bands
+st.header('**Bollinger Bands**')
+qf=cf.QuantFig(tickerDf,title='First Quant Figure',legend='top',name='GS')
+qf.add_bollinger_bands()
+fig = qf.iplot(asFigure=True)
+st.plotly_chart(fig)
 
-from sklearn.preprocessing import MinMaxScaler
-scaler = MinMaxScaler(feature_range=(0, 1))
-
-pas_100_days = data_train.tail(100)
-data_test = pd.concat([pas_100_days, data_test], ignore_index=True)
-data_test_scale = scaler.fit_transform(data_test)
-
-st.subheader('Price vs MA50')
-ma_50_days = data.Close.rolling(50).mean()
-fig1 = plt.figure(figsize=(8, 6))
-plt.plot(ma_50_days, 'r')
-plt.plot(data.Close, 'g')
-plt.show()
-st.pyplot(fig1)
-
-st.subheader('Price vs MA50 vs MA100')
-ma_100_days = data.Close.rolling(100).mean()
-fig2 = plt.figure(figsize=(8, 6))
-plt.plot(ma_50_days, 'r')
-plt.plot(ma_100_days, 'b')
-plt.plot(data.Close, 'g')
-plt.show()
-st.pyplot(fig2)
-
-st.subheader('Price vs MA100 vs MA200')
-ma_200_days = data.Close.rolling(200).mean()
-fig3 = plt.figure(figsize=(8, 6))
-plt.plot(ma_100_days, 'r')
-plt.plot(ma_200_days, 'b')
-plt.plot(data.Close, 'g')
-plt.show()
-st.pyplot(fig3)
-
-x = []
-y = []
-
-for i in range(100, data_test_scale.shape[0]):
-    x.append(data_test_scale[i-100:i])
-    y.append(data_test_scale[i, 0])
-
-x, y = np.array(x), np.array(y)
-
-predict = model.predict(x)
-
-scale = 1/scaler.scale_
-
-predict = predict * scale
-y = y * scale
-
-st.subheader('Original Price vs Predicted Price')
-fig4 = plt.figure(figsize=(8, 6))
-plt.plot(predict, 'r', label='Original Price')
-plt.plot(y, 'g', label='Predicted Price')
-plt.xlabel('Time')
-plt.ylabel('Price')
-plt.show()
-st.pyplot(fig4)
+####
+#st.write('---')
+#st.write(tickerData.info)
