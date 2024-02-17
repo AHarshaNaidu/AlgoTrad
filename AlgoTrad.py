@@ -5,6 +5,9 @@ import cufflinks as cf
 import datetime
 from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
 
 # App title
 st.markdown('''
@@ -74,3 +77,32 @@ fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku
                                go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
                          layout=go.Layout(title='Ichimoku Cloud'))
 st.plotly_chart(fig_ichimoku)
+
+# Stock Price Prediction
+st.header('**Stock Price Prediction**')
+
+# Prepare the data for prediction
+tickerDf['Date'] = tickerDf.index
+tickerDf.reset_index(drop=True, inplace=True)
+X = tickerDf.index.values.reshape(-1, 1)
+y = tickerDf['Close'].values
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# Train the model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Display actual vs predicted prices
+prediction_df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+st.write(prediction_df)
+
+# Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+st.write('Mean Squared Error:', mse)
+st.write('R^2 Score:', r2)
