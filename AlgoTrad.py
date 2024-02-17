@@ -4,6 +4,7 @@ import pandas as pd
 import cufflinks as cf
 import datetime
 from ta.trend import IchimokuIndicator
+import plotly.graph_objs as go
 
 # App title
 st.markdown('''
