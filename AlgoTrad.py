@@ -1,19 +1,21 @@
 import numpy as np
 import pandas as pd
-from keras.models import load_model
 import yfinance as yf
+from keras.models import load_model
 import streamlit as st
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
 import os
 
-# Define the absolute path to the model file
-model_path = os.path.abspath("AlgoTrad/Stock_Predictions_Model.h5")
+# Define the file path relative to the root directory of your Streamlit Cloud app
+model_path = 'AlgoTrad/Stock_Predictions_Model.h5'
 
 # Function to load the Keras model
 @st.cache(allow_output_mutation=True)
 def load_keras_model():
-    return load_model(model_path)
+    st.write("Loading model from path:", model_path)
+    model = load_model(model_path)
+    st.write("Model loaded successfully!")
+    return model
 
 # Load the Keras model
 model = load_keras_model()
@@ -32,6 +34,7 @@ st.write(data)
 data_train = pd.DataFrame(data.Close[0: int(len(data)*0.80)])
 data_test = pd.DataFrame(data.Close[int(len(data)*0.80):])
 
+from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler(feature_range=(0, 1))
 
 pas_100_days = data_train.tail(100)
