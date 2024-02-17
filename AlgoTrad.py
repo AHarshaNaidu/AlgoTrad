@@ -1,16 +1,22 @@
 import numpy as np
 import pandas as pd
-import yfinance as yf
 from keras.models import load_model
+import yfinance as yf
 import streamlit as st
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
+import os
 
-# Define the path to your Keras model file
-model_path = 'AlgoTrad/Stock_Predictions_Model.h5'
+# Define the absolute path to the model file
+model_path = os.path.abspath("AlgoTrad/Stock_Predictions_Model.h5")
+
+# Function to load the Keras model
+@st.cache(allow_output_mutation=True)
+def load_keras_model():
+    return load_model(model_path)
 
 # Load the Keras model
-model = load_model(model_path)
+model = load_keras_model()
 
 st.header('Stock Market Predictor')
 
