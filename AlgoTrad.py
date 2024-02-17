@@ -129,3 +129,41 @@ fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transfo
 fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
 fig_pred.update_layout(title='Actual vs Predicted Prices')
 st.plotly_chart(fig_pred)
+
+# Portfolio Optimization
+st.header('**Portfolio Optimization**')
+
+# User input for expected returns and covariance matrix
+expected_returns = st.number_input('Expected returns (%)', value=10.0)
+cov_matrix = st.text_area('Covariance Matrix (comma-separated)', value='''0.1, 0.05, 0.03
+0.05, 0.12, 0.07
+0.03, 0.07, 0.15''')
+
+# Convert cov_matrix to numpy array
+cov_matrix = np.fromstring(cov_matrix, sep=',').reshape((3, 3))
+
+# Perform Mean-Variance Optimization
+def mean_variance_optimization(expected_returns, cov_matrix):
+    n = len(expected_returns)
+    returns = np.array(expected_returns)
+
+    # Define optimization variables
+    weights = cp.Variable(n)
+    
+    # Define objective function (minimize portfolio risk)
+    risk = cp.quad_form(weights, cov_matrix)
+    objective = cp.Minimize(risk)
+    
+    # Define constraints (expected return >= target)
+    constraints = [cp.sum(weights) == 1, weights >= 0, cp.sum(weights @ returns) >= expected_returns]
+    
+    # Solve the optimization problem
+    problem = cp.Problem(objective, constraints)
+    problem.solve()
+    
+    # Get optimized weights
+    optimal_weights = weights.value
+    return optimal_weights
+
+optimal_weights = mean_variance_optimization(expected_returns, cov_matrix)
+st.write('Optimized Portfolio Weights:', optimal_weights)
