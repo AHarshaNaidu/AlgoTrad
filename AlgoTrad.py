@@ -7,6 +7,7 @@ from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
 import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split  # Add this import statement
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
