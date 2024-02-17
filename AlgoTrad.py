@@ -8,9 +8,8 @@ import tempfile
 import os
 
 # Function to load the Keras model
-@st.cache(allow_output_mutation=True)
 def load_keras_model():
-    model_path = os.path.join(tempfile.gettempdir(), 'Stock Predictions Model.keras')
+    model_path = os.path.join(tempfile.gettempdir(), 'Stock_Predictions_Model.keras')
     with open(model_path, 'wb') as model_file:
         model_file.write(st.secrets['model_file'].read())
     return load_model(model_path)
