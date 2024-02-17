@@ -14,10 +14,11 @@ import numpy as np
 
 # App title
 st.markdown('''
-# Algorithmic Trading Strategies | Team GARUDA
-Akula Sri Harsha Sri Sai Hanuman (LinkedIN.com/in/AHarshaNaidu)
-
+# Algorithmic Trading Strategies
+Team GARUDA
 Scale +91 Hackathon | FFI 2024
+
+Akula Sri Harsha Sri Sai Hanuman (LinkedIN.com/in/AHarshaNaidu)
 ''')
 st.write('---')
 
