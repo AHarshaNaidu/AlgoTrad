@@ -4,7 +4,7 @@ import yfinance as yf
 from keras.models import load_model
 import streamlit as st
 import matplotlib.pyplot as plt
-import os  # Add import statement for os module
+import os
 
 # Define the absolute path to the model file
 model_path = os.path.abspath("AlgoTrad/Stock_Predictions_Model.h5")
@@ -15,7 +15,8 @@ st.write("Loading model from path:", model_path)
 # Function to load the Keras model
 @st.cache(allow_output_mutation=True)
 def load_keras_model():
-    return load_model(model_path)
+    model = load_model(model_path)
+    return model
 
 # Load the Keras model
 model = load_keras_model()
