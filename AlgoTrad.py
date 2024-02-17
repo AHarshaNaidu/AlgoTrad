@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 
 # Define the path to your Keras model file
-model_path = 'models/Stock_Predictions_Model.h5'
+model_path = 'model_path = 'AlgoTrad/Stock_Predictions_Model.h5'
 
 # Load the Keras model
 model = load_model(model_path)
