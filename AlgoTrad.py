@@ -14,7 +14,7 @@ import numpy as np
 
 # App title
 st.markdown('''
-# Algorithmic Trading Strategies | Team GARUDA
+# Algorithmic Trading Strategies Team GARUDA
 Scale +91 Hackathon | FFI 2024
 ''')
 st.write('---')
