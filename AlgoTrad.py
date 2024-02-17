@@ -111,7 +111,7 @@ model.add(Dense(units=1))
 
 # Compile and fit the model
 model.compile(optimizer='adam', loss='mean_squared_error')
-model.fit(X_train, y_train, epochs=5, batch_size=32)
+model.fit(X_train, y_train, epochs=20, batch_size=64)
 
 # Make predictions
 predictions = model.predict(X_test)
