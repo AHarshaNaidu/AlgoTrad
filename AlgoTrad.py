@@ -14,8 +14,8 @@ import numpy as np
 
 # App title
 st.markdown('''
-# Stock Price Analysis
-Shown are the stock price data for query companies!
+# Algorithmic Trading Strategies | Team GARUDA
+Scale +91 Hackathon | FFI 2024
 ''')
 st.write('---')
 
