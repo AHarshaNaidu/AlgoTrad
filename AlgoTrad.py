@@ -66,3 +66,4 @@ tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_li
 
 fig_ichimoku = tickerDf[['Close', 'ichimoku_a', 'ichimoku_b', 'ichimoku_base_line', 'ichimoku_conversion_line']].plot(figsize=(10, 6))
 st.pyplot(fig_ichimoku)
+plt.close(fig_ichimoku)  # Close the figure after displaying it
