@@ -119,12 +119,11 @@ predictions = scaler.inverse_transform(predictions)
 
 # Plot actual vs predicted prices
 st.header('**Actual vs Predicted Prices**')
+prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1,1)).flatten(), 'Predicted': predictions.flatten()})
+st.write(prediction_df)
+
 fig_pred = go.Figure()
 fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1,1)).flatten(), mode='lines', name='Actual'))
 fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
 fig_pred.update_layout(title='Actual vs Predicted Prices')
 st.plotly_chart(fig_pred)
-
-# List view of actual and predicted prices
-st.subheader('Actual vs Predicted Prices (List View)')
-st.write(prediction_df)
