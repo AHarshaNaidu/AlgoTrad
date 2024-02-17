@@ -14,7 +14,7 @@ import numpy as np
 
 # App title
 st.markdown('''
-# Stock Price App
+# Stock Price Analysis
 Shown are the stock price data for query companies!
 ''')
 st.write('---')
