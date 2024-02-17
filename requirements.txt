@@ -1,9 +1,12 @@
 pip==24.0
-streamlit
+streamlit==1.7.0
 yfinance==0.2.36
 plotly
 cufflinks==0.17.3
 keras
 matplotlib
 tensorflow
-os
+yfinance==0.1.63
+pandas==1.3.3
+numpy==1.21.2
+scikit-learn==0.24.2
