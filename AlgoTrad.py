@@ -15,8 +15,8 @@ import numpy as np
 # App title
 st.markdown('''
 # Algorithmic Trading Strategies
-Scale +91 Hackathon - FFI 2024 | Team GARUDA
-
+Scale +91 Hackathon - FFI 2024
+# Team GARUDA
 Akula Sri Harsha Sri Sai Hanuman (LinkedIN.com/in/AHarshaNaidu)
 ''')
 st.write('---')
