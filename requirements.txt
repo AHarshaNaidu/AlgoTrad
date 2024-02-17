@@ -7,5 +7,6 @@ matplotlib
 yfinance
 pandas
 numpy
+tensorflow
 scikit-learn
 ta
