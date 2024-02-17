@@ -4,6 +4,7 @@ import yfinance as yf
 from tensorflow.keras.models import load_model  # Updated import statement
 import streamlit as st
 import matplotlib.pyplot as plt
+import os  # Add import for accessing file paths
 
 # Preload the Keras model
 @st.cache(allow_output_mutation=True)
