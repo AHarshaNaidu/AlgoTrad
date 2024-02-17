@@ -15,71 +15,62 @@ st.write('---')
 
 # Sidebar
 st.sidebar.subheader('Query parameters')
+start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
+end_date = st.sidebar.date_input("End date", datetime.date(2021, 1, 31))
 
-# Manually enter the stock exchange
-stock_exchange = st.sidebar.text_input("Enter Stock Exchange (e.g., NASDAQ, NYSE)", '')
+# Retrieving tickers data
+ticker_list = pd.read_csv('https://raw.githubusercontent.com/dataprofessor/s-and-p-500-companies/master/data/constituents_symbols.txt')
+tickerSymbol = st.sidebar.selectbox('Stock ticker', ticker_list) # Select ticker symbol
+tickerData = yf.Ticker(tickerSymbol) # Get ticker data
+tickerDf = tickerData.history(period='1d', start=start_date, end=end_date) #get the historical prices for this ticker
 
-# Manually enter the list of stocks separated by commas
-stocks_input = st.sidebar.text_input("Enter Stock Symbols (e.g., AAPL, MSFT, GOOGL)", '')
+# Ticker information
+string_logo = ''
+if 'logo_url' in tickerData.info:
+    string_logo = '<img src=%s>' % tickerData.info['logo_url']
+    st.markdown(string_logo, unsafe_allow_html=True)
 
-# Convert the list of stocks to uppercase and split by comma
-stocks = [stock.strip().upper() for stock in stocks_input.split(',') if stock.strip()]
+string_name = tickerData.info.get('longName', 'N/A')
+st.header('**%s**' % string_name)
 
-if stocks:
-    try:
-        # Retrieve tickers data
-        tickerData = yf.Tickers(" ".join(stocks))  # Concatenate the list of stocks into a space-separated string
-        tickerDf = tickerData.history(period='1d', start=datetime.date(2019, 1, 1), end=datetime.date(2021, 1, 31))
+string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
+st.info(string_summary)
 
-        # Ticker information
-        st.header('**Ticker information**')
-        for stock in stocks:
-            string_logo = ''
-            if stock_exchange and stock:
-                ticker = yf.Ticker(f"{stock}.{stock_exchange}")
-                if 'logo_url' in ticker.info:
-                    string_logo = '<img src=%s>' % ticker.info['logo_url']
-                    st.markdown(string_logo, unsafe_allow_html=True)
+# Ticker data
+st.header('**Ticker data**')
+st.write(tickerDf)
 
-                string_name = ticker.info.get('longName', 'N/A')
-                st.subheader(f"{stock} - {string_name}")
-            else:
-                st.subheader("Please enter both stock exchange and stock symbols")
+# Daily Returns
+st.header('**Daily Returns**')
+daily_returns = tickerDf['Close'].pct_change()
+st.write(daily_returns)
 
-        # Ticker data
-        st.header('**Ticker data**')
-        st.write(tickerDf)
+# Cumulative Returns
+st.header('**Cumulative Returns**')
+cumulative_returns = daily_returns.cumsum()
+st.write(cumulative_returns)
 
-        # Daily Returns
-        st.header('**Daily Returns**')
-        daily_returns = tickerDf['Close'].pct_change()
-        st.write(daily_returns)
+# Bollinger bands
+st.header('**Bollinger Bands**')
+qf = cf.QuantFig(tickerDf, title='First Quant Figure', legend='top', name='GS')
+qf.add_bollinger_bands()
+fig = qf.iplot(asFigure=True)
+st.plotly_chart(fig)
 
-        # Cumulative Returns
-        st.header('**Cumulative Returns**')
-        cumulative_returns = daily_returns.cumsum()
-        st.write(cumulative_returns)
+# Ichimoku Cloud
+st.header('**Ichimoku Cloud**')
 
-        # Ichimoku Cloud
-        st.header('**Ichimoku Cloud**')
+# Calculate Ichimoku Cloud data
+indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
+tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
+tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
+tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
+tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
 
-        # Calculate Ichimoku Cloud data
-        indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
-        tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
-        tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
-        tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
-        tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
-
-        # Plot Ichimoku Cloud
-        fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
-                                       go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
-                                       go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
-                                       go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'],
-                                                  name='Conversion Line')],
-                                 layout=go.Layout(title='Ichimoku Cloud'))
-        st.plotly_chart(fig_ichimoku)
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-        st.warning("Please check the entered stock symbols and try again.")
-else:
-    st.warning("Please enter at least one stock symbol.")
+# Plot Ichimoku Cloud
+fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
+                               go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
+                               go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
+                               go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
+                         layout=go.Layout(title='Ichimoku Cloud'))
+st.plotly_chart(fig_ichimoku)
