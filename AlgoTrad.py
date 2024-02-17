@@ -9,12 +9,6 @@ st.markdown('''
 # Stock Price App
 Shown are the stock price data for query companies!
 
-**Credits**
-- App built by [Chanin Nantasenamat](https://medium.com/@chanin.nantasenamat) (aka [Data Professor](http://youtube.com/dataprofessor))
-- Built in `Python` using `streamlit`,`yfinance`, `cufflinks`, `pandas` and `datetime`
-''')
-st.write('---')
-
 # Sidebar
 st.sidebar.subheader('Query parameters')
 start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
