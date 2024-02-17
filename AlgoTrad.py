@@ -1,76 +1,106 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import cufflinks as cf
-import datetime
-from ta.trend import IchimokuIndicator
-import plotly.graph_objs as go
+import numpy as np
+import plotly.express as px
 
-# App title
-st.markdown('''
-# Stock Price App
-Shown are the stock price data for query companies!
-''')
-st.write('---')
+# Function to fetch list of stocks from a given stock exchange
+def get_stock_list(stock_exchange):
+    # Logic to fetch the list of stocks from the selected stock exchange
+    # Replace this with your code to fetch the list of stocks
+    return ["AAPL", "GOOGL", "MSFT", "AMZN", "FB"]  # Example list of stocks
 
-# Sidebar
-st.sidebar.subheader('Query parameters')
-start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
-end_date = st.sidebar.date_input("End date", datetime.date(2021, 1, 31))
+# Function to merge dataframes by column name
+def merge_df_by_column_name(column_name, start_date, end_date, *tickers):
+    dfs = []
+    for ticker in tickers:
+        ticker_data = yf.download(ticker, start=start_date, end=end_date)
+        dfs.append(ticker_data[[column_name]].rename(columns={column_name: ticker}))
+    merged_df = pd.concat(dfs, axis=1)
+    return merged_df
 
-# Retrieving tickers data
-ticker_list = pd.read_csv('https://raw.githubusercontent.com/dataprofessor/s-and-p-500-companies/master/data/constituents_symbols.txt')
-tickerSymbol = st.sidebar.selectbox('Stock ticker', ticker_list) # Select ticker symbol
-tickerData = yf.Ticker(tickerSymbol) # Get ticker data
-tickerDf = tickerData.history(period='1d', start=start_date, end=end_date) #get the historical prices for this ticker
+# Sidebar navigation
+page = st.sidebar.radio("Navigation", ["Stock Price", "Portfolio Optimization"])
 
-# Ticker information
-string_logo = ''
-if 'logo_url' in tickerData.info:
-    string_logo = '<img src=%s>' % tickerData.info['logo_url']
-    st.markdown(string_logo, unsafe_allow_html=True)
+if page == "Stock Price":
+    # App title and description
+    st.markdown('''
+    # Stock Price App
+    Shown are the stock price data for query companies!
+    ''')
+    st.write('---')
 
-string_name = tickerData.info.get('longName', 'N/A')
-st.header('**%s**' % string_name)
+    # Sidebar parameters
+    st.sidebar.subheader('Query parameters')
+    start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
+    end_date = st.sidebar.date_input("End date", datetime.date(2021, 1, 31))
 
-string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
-st.info(string_summary)
+    # Stock exchange selection
+    stock_exchange = st.sidebar.selectbox("Select Stock Exchange", ["NASDAQ", "NYSE", "London Stock Exchange", "Tokyo Stock Exchange"])
 
-# Ticker data
-st.header('**Ticker data**')
-st.write(tickerDf)
+    # Fetch list of stocks from the selected stock exchange
+    stock_list = get_stock_list(stock_exchange)
 
-# Daily Returns
-st.header('**Daily Returns**')
-daily_returns = tickerDf['Close'].pct_change()
-st.write(daily_returns)
+    # Allow user to select a stock
+    tickerSymbol = st.sidebar.selectbox('Stock ticker', stock_list)  # Select ticker symbol
+    tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
+    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)  # Get historical prices for this ticker
 
-# Cumulative Returns
-st.header('**Cumulative Returns**')
-cumulative_returns = daily_returns.cumsum()
-st.write(cumulative_returns)
+    # Ticker information
+    string_logo = ''
+    if 'logo_url' in tickerData.info:
+        string_logo = '<img src=%s>' % tickerData.info['logo_url']
+        st.markdown(string_logo, unsafe_allow_html=True)
 
-# Bollinger bands
-st.header('**Bollinger Bands**')
-qf = cf.QuantFig(tickerDf, title='First Quant Figure', legend='top', name='GS')
-qf.add_bollinger_bands()
-fig = qf.iplot(asFigure=True)
-st.plotly_chart(fig)
+    string_name = tickerData.info.get('longName', 'N/A')
+    st.header('**%s**' % string_name)
 
-# Ichimoku Cloud
-st.header('**Ichimoku Cloud**')
+    string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
+    st.info(string_summary)
 
-# Calculate Ichimoku Cloud data
-indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
-tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
-tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
-tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
-tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
+    # Ticker data
+    st.header('**Ticker data**')
+    st.write(tickerDf)
 
-# Plot Ichimoku Cloud
-fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
-                               go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
-                               go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
-                               go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
-                         layout=go.Layout(title='Ichimoku Cloud'))
-st.plotly_chart(fig_ichimoku)
+    # Daily Returns
+    st.header('**Daily Returns**')
+    daily_returns = tickerDf['Close'].pct_change()
+    st.write(daily_returns)
+
+    # Cumulative Returns
+    st.header('**Cumulative Returns**')
+    cumulative_returns = daily_returns.cumsum()
+    st.write(cumulative_returns)
+
+    # Bollinger bands
+    st.header('**Bollinger Bands**')
+    qf = cf.QuantFig(tickerDf, title='First Quant Figure', legend='top', name='GS')
+    qf.add_bollinger_bands()
+    fig = qf.iplot(asFigure=True)
+    st.plotly_chart(fig)
+
+elif page == "Portfolio Optimization":
+    # App title and description
+    st.markdown('''
+    # Markowitz Portfolio Optimization
+    Harry Markowitz proved that you could make what is called an efficient portfolio. That is a portfolio that optimizes return while also minimizing risk. We don't benefit from analyzing individual securities at the same rate as if we instead considered a portfolio of stocks.
+
+    We do this by creating portfolios with stocks that are not correlated. We want to calculate expected returns by analyzing the returns of each stock multiplied by its weight.
+
+    The standard deviation of the portfolio is found this way. Sum multiple calculations starting by finding the product of the first securities weight squared times its standard deviation squared. The middle is 2 times the correlation coefficient between the stocks. And, finally add those to the weight squared times the standard deviation squared for the second security.
+
+    Plotting an Efficient Frontier
+    ''')
+
+    # Stock exchange selection for portfolio optimization
+    stock_exchange = st.selectbox("Select Stock Exchange for Portfolio Optimization", ["NASDAQ", "NYSE", "London Stock Exchange", "Tokyo Stock Exchange"])
+
+    # Fetch list of stocks from the selected stock exchange for portfolio optimization
+    stock_list = get_stock_list(stock_exchange)
+
+    # List of stocks for portfolio optimization
+    port_list = st.multiselect("Select Stocks for Portfolio Optimization", stock_list)
+
+    if st.button("Optimize Portfolio"):
+        # Perform portfolio optimization using the selected stocks
+        # Your code for portfolio optimization goes here...
