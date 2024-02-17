@@ -1,11 +1,18 @@
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from keras.models import load_model
+from tensorflow.keras.models import load_model  # Updated import statement
 import streamlit as st
 import matplotlib.pyplot as plt
 
-model = load_model('/home/adminuser/venv/lib/python3.9/site-packages/AlgoTrad/Stock Predictions Model.keras')
+model_path = '/home/adminuser/venv/lib/python3.9/site-packages/AlgoTrad/Stock Predictions Model.keras'
+
+# Function to load the Keras model
+@st.cache(allow_output_mutation=True)
+def load_keras_model(path):
+    return load_model(path)
+
+model = load_keras_model(model_path)
 
 st.header('Stock Market Predictor')
 
