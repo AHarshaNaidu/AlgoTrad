@@ -5,9 +5,10 @@ import cufflinks as cf
 import datetime
 from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+import numpy as np
 
 # App title
 st.markdown('''
@@ -78,38 +79,42 @@ fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku
                          layout=go.Layout(title='Ichimoku Cloud'))
 st.plotly_chart(fig_ichimoku)
 
-# Stock Price Prediction
-st.header('**Stock Price Prediction**')
+# Stock Price Prediction using LSTM
+st.header('**Stock Price Prediction using LSTM**')
 
 # Prepare the data for prediction
-tickerDf['Date'] = tickerDf.index
-tickerDf.reset_index(drop=True, inplace=True)
-X = tickerDf.index.values.reshape(-1, 1)
-y = tickerDf['Close'].values
+data = tickerDf['Close'].values.reshape(-1, 1)
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled_data = scaler.fit_transform(data)
+
+# Create sequences
+def create_sequences(data, seq_length):
+    X, y = [], []
+    for i in range(len(data) - seq_length):
+        X.append(data[i:i + seq_length])
+        y.append(data[i + seq_length])
+    return np.array(X), np.array(y)
+
+seq_length = 60
+X, y = create_sequences(scaled_data, seq_length)
 
 # Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
-# Train the model
-model = GradientBoostingRegressor(n_estimators=100, max_depth=3, random_state=0)
-model.fit(X_train, y_train)
+# Build the LSTM model
+model = Sequential()
+model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+model.add(LSTM(units=50))
+model.add(Dense(units=1))
+
+# Compile and fit the model
+model.compile(optimizer='adam', loss='mean_squared_error')
+model.fit(X_train, y_train, epochs=5, batch_size=32)
 
 # Make predictions
-y_pred = model.predict(X_test)
+predictions = model.predict(X_test)
+predictions = scaler.inverse_transform(predictions)
 
 # Display actual vs predicted prices
-prediction_df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred}, index=tickerDf.index[X_test.flatten()])
+prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1,1)).flatten(), 'Predicted': predictions.flatten()})
 st.write(prediction_df)
-
-# Plot actual vs predicted prices
-fig_pred = go.Figure()
-fig_pred.add_trace(go.Scatter(x=tickerDf.index, y=tickerDf['Close'], mode='lines', name='Actual'))
-fig_pred.add_trace(go.Scatter(x=prediction_df.index, y=prediction_df['Predicted'], mode='lines', name='Predicted'))
-fig_pred.update_layout(title='Actual vs Predicted Stock Prices', xaxis_title='Date', yaxis_title='Price')
-st.plotly_chart(fig_pred)
-
-# Evaluate the model
-mse = mean_squared_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
-st.write('Mean Squared Error:', mse)
-st.write('R^2 Score:', r2)
