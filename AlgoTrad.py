@@ -4,18 +4,18 @@ import yfinance as yf
 from keras.models import load_model
 import streamlit as st
 import matplotlib.pyplot as plt
-import os
+import os  # Add import statement for os module
 
-# Define the file path relative to the root directory of your Streamlit Cloud app
-model_path = 'AlgoTrad/Stock_Predictions_Model.h5'
+# Define the absolute path to the model file
+model_path = os.path.abspath("AlgoTrad/Stock_Predictions_Model.h5")
+
+# Write the model loading message outside the cached function
+st.write("Loading model from path:", model_path)
 
 # Function to load the Keras model
 @st.cache(allow_output_mutation=True)
 def load_keras_model():
-    st.write("Loading model from path:", model_path)
-    model = load_model(model_path)
-    st.write("Model loaded successfully!")
-    return model
+    return load_model(model_path)
 
 # Load the Keras model
 model = load_keras_model()
