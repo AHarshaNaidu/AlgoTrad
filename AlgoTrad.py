@@ -75,7 +75,7 @@ if page == "Stock Price":
 
     # Bollinger bands
     st.header('**Bollinger Bands**')
-    qf = cf.QuantFig(tickerDf, title='First Quant Figure', legend='top', name='GS')
+    qf = cf.QuantFig(tickerDf, title='Stock Price Analysis', legend='top', name='Stock Price')
     qf.add_bollinger_bands()
     fig = qf.iplot(asFigure=True)
     st.plotly_chart(fig)
