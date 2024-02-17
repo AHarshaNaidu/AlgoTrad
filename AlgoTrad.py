@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import datetime
 
 # Function to fetch list of stocks from a given stock exchange
 def get_stock_list(stock_exchange):
