@@ -66,14 +66,10 @@ tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
 tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
 tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
 
-# Create a new QuantFig object
-qf_ichimoku = cf.QuantFig(tickerDf, title='Ichimoku Cloud', legend='top', name='GS')
-
-# Add Ichimoku Cloud to the figure
-qf_ichimoku.add_ichimoku()
-
-# Plot the figure
-fig_ichimoku = qf_ichimoku.iplot(asFigure=True)
-
-# Display the plot using st.plotly_chart()
+# Plot Ichimoku Cloud
+fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
+                               go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
+                               go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
+                               go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
+                         layout=go.Layout(title='Ichimoku Cloud'))
 st.plotly_chart(fig_ichimoku)
