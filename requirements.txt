@@ -3,10 +3,9 @@ streamlit
 yfinance
 plotly
 cufflinks
-keras
 matplotlib
-tensorflow
 yfinance
 pandas
 numpy
 scikit-learn
+ta
