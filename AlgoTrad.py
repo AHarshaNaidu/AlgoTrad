@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import cufflinks as cf
 import datetime
+from ta.trend import IchimokuIndicator
 
 # App title
 st.markdown('''
@@ -38,9 +39,30 @@ st.info(string_summary)
 st.header('**Ticker data**')
 st.write(tickerDf)
 
+# Daily Returns
+st.header('**Daily Returns**')
+daily_returns = tickerDf['Close'].pct_change()
+st.write(daily_returns)
+
+# Cumulative Returns
+st.header('**Cumulative Returns**')
+cumulative_returns = daily_returns.cumsum()
+st.write(cumulative_returns)
+
 # Bollinger bands
 st.header('**Bollinger Bands**')
-qf=cf.QuantFig(tickerDf,title='First Quant Figure',legend='top',name='GS')
+qf = cf.QuantFig(tickerDf, title='First Quant Figure', legend='top', name='GS')
 qf.add_bollinger_bands()
 fig = qf.iplot(asFigure=True)
 st.plotly_chart(fig)
+
+# Ichimoku Cloud
+st.header('**Ichimoku Cloud**')
+indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
+tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
+tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
+tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
+tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
+
+fig_ichimoku = tickerDf[['Close', 'ichimoku_a', 'ichimoku_b', 'ichimoku_base_line', 'ichimoku_conversion_line']].plot(figsize=(10, 6))
+st.pyplot(fig_ichimoku)
