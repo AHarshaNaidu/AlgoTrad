@@ -100,7 +100,3 @@ elif page == "Portfolio Optimization":
 
     # List of stocks for portfolio optimization
     port_list = st.multiselect("Select Stocks for Portfolio Optimization", stock_list)
-
-    if st.button("Optimize Portfolio"):
-        # Perform portfolio optimization using the selected stocks
-        # Your code for portfolio optimization goes here...
