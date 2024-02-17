@@ -1,3 +1,7 @@
 pip==24.0
 yfinance==0.2.36
 plotly
+cufflinks==0.17.3
+keras
+matplotlib
+tensorflow
