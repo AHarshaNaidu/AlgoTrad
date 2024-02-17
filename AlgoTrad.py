@@ -4,6 +4,7 @@ import yfinance as yf
 from tensorflow.keras.models import load_model  # Updated import statement
 import streamlit as st
 import matplotlib.pyplot as plt
+import os  # Added import for accessing file paths
 
 # Define the file path relative to the root directory of your Streamlit Cloud app
 model_path = 'Stock Predictions Model.keras'
@@ -11,6 +12,7 @@ model_path = 'Stock Predictions Model.keras'
 # Function to load the Keras model
 @st.cache(allow_output_mutation=True)
 def load_keras_model(path):
+    st.write("Trying to load model from path:", os.path.abspath(path))  # Log the file path being used
     return load_model(path)
 
 model = load_keras_model(model_path)
