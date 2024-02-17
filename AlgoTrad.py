@@ -5,11 +5,11 @@ from keras.models import load_model
 import streamlit as st
 import matplotlib.pyplot as plt
 
-model = load_model('C:\Python\Stock\Stock Predictions Model.keras')
+model = load_model('/home/adminuser/venv/lib/python3.9/site-packages/AlgoTrad/Stock Predictions Model.keras')
 
 st.header('Stock Market Predictor')
 
-stock =st.text_input('Enter Stock Symnbol', 'GOOG')
+stock =st.text_input('Enter Stock Symbol', 'GOOG')
 start = '2012-01-01'
 end = '2022-12-31'
 
