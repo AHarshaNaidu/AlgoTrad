@@ -8,6 +8,8 @@ import datetime
 st.markdown('''
 # Stock Price App
 Shown are the stock price data for query companies!
+''')
+st.write('---')
 
 # Sidebar
 st.sidebar.subheader('Query parameters')
@@ -42,7 +44,3 @@ qf=cf.QuantFig(tickerDf,title='First Quant Figure',legend='top',name='GS')
 qf.add_bollinger_bands()
 fig = qf.iplot(asFigure=True)
 st.plotly_chart(fig)
-
-####
-#st.write('---')
-#st.write(tickerData.info)
