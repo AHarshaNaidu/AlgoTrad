@@ -5,6 +5,7 @@ import cufflinks as cf
 import datetime
 from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
+import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
