@@ -12,10 +12,8 @@ model_path = 'Stock Predictions Model.keras'
 # Preload the Keras model
 @st.cache(allow_output_mutation=True)
 def load_keras_model():
+    st.write("Trying to load model from path:", os.path.abspath(model_path))
     return load_model(model_path)
-
-# Log the file path being used outside of the cached function
-st.write("Trying to load model from path:", os.path.abspath(model_path))
 
 # Load the Keras model
 model = load_keras_model()
