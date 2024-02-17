@@ -117,6 +117,10 @@ model.fit(X_train, y_train, epochs=5, batch_size=32)
 predictions = model.predict(X_test)
 predictions = scaler.inverse_transform(predictions)
 
-# Display actual vs predicted prices
-prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1,1)).flatten(), 'Predicted': predictions.flatten()})
-st.write(prediction_df)
+# Plot actual vs predicted prices
+st.header('**Actual vs Predicted Prices**')
+fig_pred = go.Figure()
+fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1,1)).flatten(), mode='lines', name='Actual'))
+fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
+fig_pred.update_layout(title='Actual vs Predicted Prices')
+st.plotly_chart(fig_pred)
