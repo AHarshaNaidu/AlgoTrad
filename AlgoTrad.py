@@ -11,10 +11,6 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
 import cvxpy as cp  # Import cvxpy for portfolio optimization
-import warnings
-warnings.filterwarnings("ignore", message="The 'unit' keyword in TimedeltaIndex construction is deprecated")
-warnings.filterwarnings("ignore", message="DatetimeIndex.format is deprecated")
-
 
 # Function to create sequences
 def create_sequences(data, seq_length):
@@ -23,7 +19,6 @@ def create_sequences(data, seq_length):
         X.append(data[i:i + seq_length])
         y.append(data[i + seq_length])
     return np.array(X), np.array(y)
-
 
 # App title
 st.markdown('''
@@ -124,15 +119,34 @@ model.compile(optimizer='adam', loss='mean_squared_error')
 model.fit(X_train, y_train, epochs=50, batch_size=32)
 
 # Make predictions
-predictions = model.predict(X_test)
-predictions = scaler.inverse_transform(predictions)
+batch_size = 128
+num_batches = len(X_test) // batch_size
+remainder = len(X_test) % batch_size
 
-# Plot actual vs predicted prices
-st.header('**Actual vs Predicted Prices**')
+predictions = []
+for i in range(num_batches):
+    start_idx = i * batch_size
+    end_idx = (i + 1) * batch_size
+    batch_predictions = model.predict(X_test[start_idx:end_idx])
+    predictions.extend(batch_predictions)
+
+# Predict the remaining data points
+if remainder:
+    batch_predictions = model.predict(X_test[-remainder:])
+    predictions.extend(batch_predictions)
+
+# Convert predictions to numpy array
+predictions = np.array(predictions)
+
+# Inverse transform the predictions
+predictions = scaler.inverse_transform(predictions)
 
 # Filter actual data to only include dates up to the last date of the training data
 last_train_date = tickerDf.index[-len(X_test) - 1]
 actual_data_filtered = tickerDf.loc[tickerDf.index <= last_train_date]
+
+# Plot actual vs predicted prices
+st.header('**Actual vs Predicted Prices**')
 
 # Plot actual vs predicted prices
 fig_pred = go.Figure()
