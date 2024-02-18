@@ -55,8 +55,11 @@ if response.status_code == 200:
     # Daily Returns
     st.header('**Daily Returns**')
     tickerDf_cleaned = tickerDf.dropna()  # Drop rows with missing values
-    daily_returns = tickerDf_cleaned['Close'].pct_change()
-    st.write(daily_returns)
+    if 'Close' in tickerDf_cleaned:
+        daily_returns = tickerDf_cleaned['Close'].pct_change()
+        st.write(daily_returns)
+    else:
+        st.error("No 'Close' column found in the DataFrame.")
 
     # Cumulative Returns
     st.header('**Cumulative Returns**')
