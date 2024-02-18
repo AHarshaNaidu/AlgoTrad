@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
-import cvxpy as cp  # Import cvxpy for portfolio optimization
+import cvxpy as cp
 
 # App title
 st.markdown('''
@@ -27,11 +27,10 @@ start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
 end_date = st.sidebar.date_input("End date", datetime.date(2021, 1, 31))
 
 # Retrieving tickers data
-ticker_list_url = 'https://github.com/AHarshaNaidu/AlgoTrad/raw/main/Bombay.csv'
-ticker_list = pd.read_csv(ticker_list_url)
-tickerSymbol = st.sidebar.selectbox('Stock ticker', ticker_list['Ticker'].unique())  # Select ticker symbol
+ticker_list = pd.read_csv('https://github.com/AHarshaNaidu/AlgoTrad/blob/main/Bombay.csv')
+tickerSymbol = st.sidebar.selectbox('Stock ticker', ticker_list['Ticker'])  # Select ticker symbol
 tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
-tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)  # get the historical prices for this ticker
+tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)  # Get historical prices
 
 # Ticker information
 string_logo = ''
@@ -51,7 +50,8 @@ st.write(tickerDf)
 
 # Daily Returns
 st.header('**Daily Returns**')
-daily_returns = tickerDf['Close'].pct_change()
+tickerDf_cleaned = tickerDf.dropna()  # Drop rows with missing values
+daily_returns = tickerDf_cleaned['Close'].pct_change()
 st.write(daily_returns)
 
 # Cumulative Returns
