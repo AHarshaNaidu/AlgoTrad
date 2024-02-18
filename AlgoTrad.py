@@ -11,6 +11,10 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
 import cvxpy as cp  # Import cvxpy for portfolio optimization
+import warnings
+warnings.filterwarnings("ignore", message="The 'unit' keyword in TimedeltaIndex construction is deprecated")
+warnings.filterwarnings("ignore", message="DatetimeIndex.format is deprecated")
+
 
 # App title
 st.markdown('''
@@ -139,31 +143,13 @@ cov_matrix = st.text_area('Covariance Matrix (comma-separated)', value='''0.1, 0
 0.05, 0.12, 0.07
 0.03, 0.07, 0.15''')
 
-# Convert cov_matrix to numpy array
-cov_matrix = np.fromstring(cov_matrix, sep=',').reshape((3, 3))
+try:
+    # Convert cov_matrix to numpy array
+    cov_matrix = np.fromstring(cov_matrix, sep=',').reshape((3, 3))
 
-# Perform Mean-Variance Optimization
-def mean_variance_optimization(expected_returns, cov_matrix):
-    n = len(expected_returns)
-    returns = np.array(expected_returns)
+    # Perform Mean-Variance Optimization
+    optimal_weights = mean_variance_optimization(expected_returns / 100, cov_matrix)
+    st.write('Optimized Portfolio Weights:', optimal_weights)
 
-    # Define optimization variables
-    weights = cp.Variable(n)
-    
-    # Define objective function (minimize portfolio risk)
-    risk = cp.quad_form(weights, cov_matrix)
-    objective = cp.Minimize(risk)
-    
-    # Define constraints (expected return >= target)
-    constraints = [cp.sum(weights) == 1, weights >= 0, cp.sum(cp.multiply(weights, returns)) >= expected_returns]
-    
-    # Solve the optimization problem
-    problem = cp.Problem(objective, constraints)
-    problem.solve()
-    
-    # Get optimized weights
-    optimal_weights = weights.value
-    return optimal_weights
-
-optimal_weights = mean_variance_optimization(expected_returns / 100, cov_matrix)
-st.write('Optimized Portfolio Weights:', optimal_weights)
+except ValueError:
+    st.error('Invalid covariance matrix format. Please enter a valid comma-separated matrix.')
