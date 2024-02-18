@@ -6,7 +6,7 @@ import datetime
 from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split  # Add this import statement
+from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
@@ -14,6 +14,15 @@ import cvxpy as cp  # Import cvxpy for portfolio optimization
 import warnings
 warnings.filterwarnings("ignore", message="The 'unit' keyword in TimedeltaIndex construction is deprecated")
 warnings.filterwarnings("ignore", message="DatetimeIndex.format is deprecated")
+
+
+# Function to create sequences
+def create_sequences(data, seq_length):
+    X, y = [], []
+    for i in range(len(data) - seq_length):
+        X.append(data[i:i + seq_length])
+        y.append(data[i + seq_length])
+    return np.array(X), np.array(y)
 
 
 # App title
