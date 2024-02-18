@@ -6,19 +6,11 @@ import datetime
 from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split  # Add this import statement
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
 import cvxpy as cp  # Import cvxpy for portfolio optimization
-
-# Function to create sequences
-def create_sequences(data, seq_length):
-    X, y = [], []
-    for i in range(len(data) - seq_length):
-        X.append(data[i:i + seq_length])
-        y.append(data[i + seq_length])
-    return np.array(X), np.array(y)
 
 # App title
 st.markdown('''
@@ -100,57 +92,40 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 scaled_data = scaler.fit_transform(data)
 
 # Create sequences
+def create_sequences(data, seq_length):
+    X, y = [], []
+    for i in range(len(data) - seq_length):
+        X.append(data[i:i + seq_length])
+        y.append(data[i + seq_length])
+    return np.array(X), np.array(y)
+
 seq_length = 60
 X, y = create_sequences(scaled_data, seq_length)
 
 # Split data into training and testing sets
-test_size = 0.2
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 # Build the LSTM model
-model = Sequential([
-    LSTM(units=128, return_sequences=True, input_shape=(X_train.shape[1], 1)),
-    LSTM(units=64),
-    Dense(units=1)
-])
+model = Sequential()
+model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+model.add(LSTM(units=50))
+model.add(Dense(units=1))
 
 # Compile and fit the model
 model.compile(optimizer='adam', loss='mean_squared_error')
-model.fit(X_train, y_train, epochs=50, batch_size=32)
+model.fit(X_train, y_train, epochs=20, batch_size=64)
 
 # Make predictions
-batch_size = 128
-num_batches = len(X_test) // batch_size
-remainder = len(X_test) % batch_size
-
-predictions = []
-for i in range(num_batches):
-    start_idx = i * batch_size
-    end_idx = (i + 1) * batch_size
-    batch_predictions = model.predict(X_test[start_idx:end_idx])
-    predictions.extend(batch_predictions)
-
-# Predict the remaining data points
-if remainder:
-    batch_predictions = model.predict(X_test[-remainder:])
-    predictions.extend(batch_predictions)
-
-# Convert predictions to numpy array
-predictions = np.array(predictions)
-
-# Inverse transform the predictions
+predictions = model.predict(X_test)
 predictions = scaler.inverse_transform(predictions)
-
-# Filter actual data to only include dates up to the last date of the training data
-last_train_date = tickerDf.index[-len(X_test) - 1]
-actual_data_filtered = tickerDf.loc[tickerDf.index <= last_train_date]
 
 # Plot actual vs predicted prices
 st.header('**Actual vs Predicted Prices**')
+prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1,1)).flatten(), 'Predicted': predictions.flatten()})
+st.write(prediction_df)
 
-# Plot actual vs predicted prices
 fig_pred = go.Figure()
-fig_pred.add_trace(go.Scatter(x=actual_data_filtered.index, y=actual_data_filtered['Close'], mode='lines', name='Actual'))
-fig_pred.add_trace(go.Scatter(x=actual_data_filtered.index[-len(predictions):], y=predictions.flatten(), mode='lines', name='Predicted'))
+fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1,1)).flatten(), mode='lines', name='Actual'))
+fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
 fig_pred.update_layout(title='Actual vs Predicted Prices')
 st.plotly_chart(fig_pred)
