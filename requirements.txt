@@ -10,3 +10,4 @@ numpy
 tensorflow
 scikit-learn
 ta
+cvxpy
