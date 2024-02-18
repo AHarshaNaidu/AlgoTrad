@@ -5,12 +5,12 @@ import cufflinks as cf
 import datetime
 from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
-import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split  # Add this import statement
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
+import cvxpy as cp  # Import cvxpy for portfolio optimization
 
 # App title
 st.markdown('''
@@ -155,7 +155,7 @@ def mean_variance_optimization(expected_returns, cov_matrix):
     objective = cp.Minimize(risk)
     
     # Define constraints (expected return >= target)
-    constraints = [cp.sum(weights) == 1, weights >= 0, cp.sum(weights @ returns) >= expected_returns]
+    constraints = [cp.sum(weights) == 1, weights >= 0, cp.sum(cp.multiply(weights, returns)) >= expected_returns]
     
     # Solve the optimization problem
     problem = cp.Problem(objective, constraints)
@@ -165,5 +165,5 @@ def mean_variance_optimization(expected_returns, cov_matrix):
     optimal_weights = weights.value
     return optimal_weights
 
-optimal_weights = mean_variance_optimization(expected_returns, cov_matrix)
+optimal_weights = mean_variance_optimization(expected_returns / 100, cov_matrix)
 st.write('Optimized Portfolio Weights:', optimal_weights)
