@@ -52,90 +52,91 @@ if response.status_code == 200:
     st.header('**Ticker data**')
     st.write(tickerDf)
 
-    # Daily Returns
-    st.header('**Daily Returns**')
-    tickerDf_cleaned = tickerDf.dropna()  # Drop rows with missing values
-    if 'Close' in tickerDf_cleaned:
+    # Check if 'Close' column exists and there are enough data points
+    if 'Close' in tickerDf.columns and len(tickerDf) > 1:
+        # Daily Returns
+        st.header('**Daily Returns**')
+        tickerDf_cleaned = tickerDf.dropna()  # Drop rows with missing values
         daily_returns = tickerDf_cleaned['Close'].pct_change()
         st.write(daily_returns)
+
+        # Cumulative Returns
+        st.header('**Cumulative Returns**')
+        cumulative_returns = daily_returns.cumsum()
+        st.write(cumulative_returns)
+
+        # Bollinger bands
+        st.header('**Bollinger Bands**')
+        qf = cf.QuantFig(tickerDf, title='First Quant Figure', legend='top', name='GS')
+        qf.add_bollinger_bands()
+        fig = qf.iplot(asFigure=True)
+        st.plotly_chart(fig)
+
+        # Ichimoku Cloud
+        st.header('**Ichimoku Cloud**')
+
+        # Calculate Ichimoku Cloud data
+        indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
+        tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
+        tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
+        tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
+        tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
+
+        # Plot Ichimoku Cloud
+        fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
+                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
+                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
+                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
+                                    layout=go.Layout(title='Ichimoku Cloud'))
+        st.plotly_chart(fig_ichimoku)
+
+        # Stock Price Prediction using LSTM
+        st.header('**Stock Price Prediction using LSTM**')
+
+        # Prepare the data for prediction
+        data = tickerDf['Close'].values.reshape(-1, 1)
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaled_data = scaler.fit_transform(data)
+
+        # Create sequences
+        def create_sequences(data, seq_length):
+            X, y = [], []
+            for i in range(len(data) - seq_length):
+                X.append(data[i:i + seq_length])
+                y.append(data[i + seq_length])
+            return np.array(X), np.array(y)
+
+        seq_length = 60
+        X, y = create_sequences(scaled_data, seq_length)
+
+        # Split data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+        # Build the LSTM model
+        model = Sequential()
+        model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+        model.add(LSTM(units=50))
+        model.add(Dense(units=1))
+
+        # Compile and fit the model
+        model.compile(optimizer='adam', loss='mean_squared_error')
+        model.fit(X_train, y_train, epochs=20, batch_size=64)
+
+        # Make predictions
+        predictions = model.predict(X_test)
+        predictions = scaler.inverse_transform(predictions)
+
+        # Plot actual vs predicted prices
+        st.header('**Actual vs Predicted Prices**')
+        prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
+        st.write(prediction_df)
+
+        fig_pred = go.Figure()
+        fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
+        fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
+        fig_pred.update_layout(title='Actual vs Predicted Prices')
+        st.plotly_chart(fig_pred)
     else:
-        st.error("No 'Close' column found in the DataFrame.")
-
-    # Cumulative Returns
-    st.header('**Cumulative Returns**')
-    cumulative_returns = daily_returns.cumsum()
-    st.write(cumulative_returns)
-
-    # Bollinger bands
-    st.header('**Bollinger Bands**')
-    qf = cf.QuantFig(tickerDf, title='First Quant Figure', legend='top', name='GS')
-    qf.add_bollinger_bands()
-    fig = qf.iplot(asFigure=True)
-    st.plotly_chart(fig)
-
-    # Ichimoku Cloud
-    st.header('**Ichimoku Cloud**')
-
-    # Calculate Ichimoku Cloud data
-    indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
-    tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
-    tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
-    tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
-    tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
-
-    # Plot Ichimoku Cloud
-    fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
-                                    go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
-                                    go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
-                                    go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
-                                layout=go.Layout(title='Ichimoku Cloud'))
-    st.plotly_chart(fig_ichimoku)
-
-    # Stock Price Prediction using LSTM
-    st.header('**Stock Price Prediction using LSTM**')
-
-    # Prepare the data for prediction
-    data = tickerDf['Close'].values.reshape(-1, 1)
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled_data = scaler.fit_transform(data)
-
-    # Create sequences
-    def create_sequences(data, seq_length):
-        X, y = [], []
-        for i in range(len(data) - seq_length):
-            X.append(data[i:i + seq_length])
-            y.append(data[i + seq_length])
-        return np.array(X), np.array(y)
-
-    seq_length = 60
-    X, y = create_sequences(scaled_data, seq_length)
-
-    # Split data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-    # Build the LSTM model
-    model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-    model.add(LSTM(units=50))
-    model.add(Dense(units=1))
-
-    # Compile and fit the model
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(X_train, y_train, epochs=20, batch_size=64)
-
-    # Make predictions
-    predictions = model.predict(X_test)
-    predictions = scaler.inverse_transform(predictions)
-
-    # Plot actual vs predicted prices
-    st.header('**Actual vs Predicted Prices**')
-    prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
-    st.write(prediction_df)
-
-    fig_pred = go.Figure()
-    fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
-    fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
-    fig_pred.update_layout(title='Actual vs Predicted Prices')
-    st.plotly_chart(fig_pred)
+        st.error("Failed to compute daily returns. Please check if the 'Close' column exists and there are enough data points.")
 else:
     st.error("Failed to fetch ticker data from the provided URL.")
