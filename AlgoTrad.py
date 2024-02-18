@@ -96,28 +96,23 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 scaled_data = scaler.fit_transform(data)
 
 # Create sequences
-def create_sequences(data, seq_length):
-    X, y = [], []
-    for i in range(len(data) - seq_length):
-        X.append(data[i:i + seq_length])
-        y.append(data[i + seq_length])
-    return np.array(X), np.array(y)
-
 seq_length = 60
 X, y = create_sequences(scaled_data, seq_length)
 
 # Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+test_size = 0.2
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
 
 # Build the LSTM model
-model = Sequential()
-model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-model.add(LSTM(units=50))
-model.add(Dense(units=1))
+model = Sequential([
+    LSTM(units=128, return_sequences=True, input_shape=(X_train.shape[1], 1)),
+    LSTM(units=64),
+    Dense(units=1)
+])
 
 # Compile and fit the model
 model.compile(optimizer='adam', loss='mean_squared_error')
-model.fit(X_train, y_train, epochs=20, batch_size=64)
+model.fit(X_train, y_train, epochs=50, batch_size=32)
 
 # Make predictions
 predictions = model.predict(X_test)
@@ -133,7 +128,6 @@ actual_data_filtered = tickerDf.loc[tickerDf.index <= last_train_date]
 # Plot actual vs predicted prices
 fig_pred = go.Figure()
 fig_pred.add_trace(go.Scatter(x=actual_data_filtered.index, y=actual_data_filtered['Close'], mode='lines', name='Actual'))
-fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
+fig_pred.add_trace(go.Scatter(x=actual_data_filtered.index[-len(predictions):], y=predictions.flatten(), mode='lines', name='Predicted'))
 fig_pred.update_layout(title='Actual vs Predicted Prices')
 st.plotly_chart(fig_pred)
-
