@@ -133,23 +133,3 @@ fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transfo
 fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
 fig_pred.update_layout(title='Actual vs Predicted Prices')
 st.plotly_chart(fig_pred)
-
-# Portfolio Optimization
-st.header('**Portfolio Optimization**')
-
-# User input for expected returns and covariance matrix
-expected_returns = st.number_input('Expected returns (%)', value=10.0)
-cov_matrix = st.text_area('Covariance Matrix (comma-separated)', value='''0.1, 0.05, 0.03
-0.05, 0.12, 0.07
-0.03, 0.07, 0.15''')
-
-try:
-    # Convert cov_matrix to numpy array
-    cov_matrix = np.fromstring(cov_matrix, sep=',').reshape((3, 3))
-
-    # Perform Mean-Variance Optimization
-    optimal_weights = mean_variance_optimization(expected_returns / 100, cov_matrix)
-    st.write('Optimized Portfolio Weights:', optimal_weights)
-
-except ValueError:
-    st.error('Invalid covariance matrix format. Please enter a valid comma-separated matrix.')
