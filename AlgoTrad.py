@@ -28,16 +28,39 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-# App title and description in the sidebar
-st.sidebar.markdown(
+# App title and description
+st.markdown(
     """
-    # Algorithmic Trading Strategies
-    **Scale +91 Hackathon | FFI 2024**
-    **Team GARUDA**
-    [Akula Sri Harsha Sri Sai Hanuman](https://www.linkedin.com/in/AHarshaNaidu)
-
-    This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
-    """
+    <style>
+        .reportview-container .markdown-text-container {
+            font-family: 'Arial';
+            color: #264653;
+        }
+        .reportview-container {
+            background-color: #F1FAEE;
+        }
+        .sidebar .sidebar-content {
+            background-color: #E63946;
+            color: #FFFFFF;
+        }
+        .Widget>label {
+            color: #264653;
+        }
+        .sidebar .sidebar-content .sidebar-close {
+            color: #FFFFFF;
+        }
+        .css-17eq0hr-TooltipWrapper.e1g9ojyy0 {
+            background-color: #264653;
+            color: #FFFFFF;
+        }
+    </style>
+    <h1>Algorithmic Trading Strategies</h1>
+    <h3>Scale +91 Hackathon | FFI 2024</h3>
+    <h2>Team GARUDA</h2>
+    <h4>Akula Sri Harsha Sri Sai Hanuman (<a href="https://www.linkedin.com/in/AHarshaNaidu" style="color: #E63946;">LinkedIn</a>)</h4>
+    <p>This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.</p>
+    """,
+    unsafe_allow_html=True,
 )
 
 st.write('---')
