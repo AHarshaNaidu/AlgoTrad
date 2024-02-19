@@ -10,10 +10,10 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
-import import pypfopt
-from import pypfopt.efficient_frontier import EfficientFrontier
-from import pypfopt import risk_models
-from import pypfopt import expected_returns
+import pypfopt
+from pypfopt.efficient_frontier import EfficientFrontier
+from pypfopt import risk_models
+from pypfopt import expected_returns
 
 # App title
 st.markdown('''
@@ -180,3 +180,4 @@ else:
     # Display optimized portfolio weights
     st.header('**Optimized Portfolio Weights**')
     st.write(pd.Series(cleaned_weights))
+    
