@@ -42,8 +42,14 @@ def merge_df_by_column_name(col_name, sdate, edate, *dfs):
 # Function for Markowitz portfolio optimization
 def markowitz_portfolio_optimization(returns, risk_free_rate):
     # Placeholder implementation
+    print("Returns DataFrame:")
+    print(returns)
     returns_numeric = returns.apply(pd.to_numeric, errors='coerce')  # Convert to numeric, coerce errors to NaN
+    print("Numeric Returns DataFrame:")
+    print(returns_numeric)
     returns_numeric = returns_numeric.dropna()  # Drop rows with NaN values
+    print("Numeric Returns DataFrame after dropping NaN values:")
+    print(returns_numeric)
     max_sharpe_return = returns_numeric.mean().mean() * 252
     max_sharpe_volatility = returns.std() * np.sqrt(252)
     max_sharpe_weight = np.ones(len(returns.columns)) / len(returns.columns)
