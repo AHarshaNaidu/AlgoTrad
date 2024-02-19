@@ -10,10 +10,10 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
-import pypfopt
-from pypfopt.efficient_frontier import EfficientFrontier
-from pypfopt import risk_models
-from pypfopt import expected_returns
+import pyportfolioopt
+from pyportfolioopt.efficient_frontier import EfficientFrontier
+from pyportfolioopt import risk_models
+from pyportfolioopt import expected_returns
 
 # App title
 st.markdown('''
