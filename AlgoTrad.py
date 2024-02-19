@@ -26,8 +26,8 @@ This app provides various algorithmic trading strategies including technical ana
 ''')
 st.write('---')
 
-# Sidebar to choose between stock analysis and portfolio optimization
-option = st.sidebar.radio("Choose Analysis:", ("Stock Analysis", "Portfolio Optimization"))
+# Sidebar to choose between different analysis options
+option = st.sidebar.radio("Choose Analysis:", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
 # Stock Analysis
 if option == "Stock Analysis":
@@ -91,6 +91,28 @@ if option == "Stock Analysis":
                                     layout=go.Layout(title='Ichimoku Cloud'))
         st.plotly_chart(fig_ichimoku)
 
+    else:
+        st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
+
+# Stock Price Prediction
+elif option == "Stock Price Prediction":
+    st.sidebar.subheader('Stock Prediction Parameters')
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
+    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
+    tickerData = yf.Ticker(tickerSymbol)
+
+    # Fetching ticker information
+    string_name = tickerData.info.get('longName', 'N/A')
+    st.subheader(f"Stock: **{tickerSymbol} - {string_name}**")
+
+    # Ticker data
+    st.header('**Historical Stock Data**')
+    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
+    st.write(tickerDf)
+
+    # Check if 'Close' column exists and there are enough data points
+    if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Stock Price Prediction using LSTM
         st.header('**Stock Price Prediction using LSTM**')
 
