@@ -58,14 +58,11 @@ def stock_analytics():
     tickerDf = get_ticker_data(tickerSymbol, start_date, end_date)
 
     # Ticker information
-    if hasattr(tickerDf, 'info'):
-        string_name = tickerDf.info.get('longName', 'N/A')
-        st.header('**%s**' % string_name)
+    string_name = tickerDf.get('longName', 'N/A')
+    st.header('**%s**' % string_name)
 
-        string_summary = tickerDf.info.get('longBusinessSummary', 'N/A')
-        st.info(string_summary)
-    else:
-        st.warning("Ticker information not available.")
+    string_summary = tickerDf.get('longBusinessSummary', 'N/A')
+    st.info(string_summary)
 
     # Ticker data
     st.header('**Ticker data**')
