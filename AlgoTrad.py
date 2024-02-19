@@ -20,15 +20,6 @@ def get_ticker_data(tickerSymbol, start_date, end_date):
     tickerData = yf.Ticker(tickerSymbol)
     return tickerData.history(period='1d', start=start_date, end=end_date)
 
-# Function to calculate Ichimoku Cloud data
-def calculate_ichimoku_cloud(tickerDf):
-    indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
-    tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
-    tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
-    tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
-    tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
-    return tickerDf
-
 # Function to create LSTM model
 def create_lstm_model(X_train):
     model = Sequential()
@@ -45,16 +36,6 @@ def create_sequences(data, seq_length):
         X.append(data[i:i + seq_length])
         y.append(data[i + seq_length])
     return np.array(X), np.array(y)
-
-# Function to perform portfolio optimization
-def optimize_portfolio(data):
-    mu = expected_returns.mean_historical_return(data)
-    Sigma = risk_models.sample_cov(data)
-    ef = EfficientFrontier(mu, Sigma)
-    raw_weights = ef.max_sharpe()
-    cleaned_weights = ef.clean_weights()
-    ef.portfolio_performance(verbose=True)
-    return cleaned_weights
 
 # Main function
 def main():
@@ -78,7 +59,7 @@ def main():
 
     # Ticker information
     string_logo = ''
-    if 'logo_url' in tickerDf.info:
+    if hasattr(tickerDf, 'info') and 'logo_url' in tickerDf.info:
         string_logo = '<img src=%s>' % tickerDf.info['logo_url']
         st.markdown(string_logo, unsafe_allow_html=True)
 
