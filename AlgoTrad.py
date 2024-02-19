@@ -51,15 +51,20 @@ if option == "Stock Analysis":
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
-        # Daily Returns
-        st.header('**Daily Returns**')
-        daily_returns = tickerDf['Close'].pct_change()
-        st.write(daily_returns)
+        # Use st.columns to create two columns
+        returns_columns = st.columns(2)
 
-        # Cumulative Returns
-        st.header('**Cumulative Returns**')
-        cumulative_returns = daily_returns.cumsum()
-        st.write(cumulative_returns)
+        # Display Daily Returns
+        with returns_columns[0]:
+            st.header('**Daily Returns**')
+            daily_returns = tickerDf['Close'].pct_change()
+            st.write(daily_returns)
+
+        # Display Cumulative Returns
+        with returns_columns[1]:
+            st.header('**Cumulative Returns**')
+            cumulative_returns = daily_returns.cumsum()
+            st.write(cumulative_returns)
 
         # Bollinger bands
         st.header('**Bollinger Bands**')
@@ -134,7 +139,7 @@ if option == "Stock Analysis":
         st.plotly_chart(fig_pred)
 
     else:
-        st.error("Failed to compute daily returns. Please check if the 'Close' column exists and there are enough data points.")
+        st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
 # Portfolio Optimization
 elif option == "Portfolio Optimization":
