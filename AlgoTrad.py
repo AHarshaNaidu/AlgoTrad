@@ -26,129 +26,127 @@ This app provides various algorithmic trading strategies including technical ana
 ''')
 st.write('---')
 
-# Sidebar
-st.sidebar.subheader('Analysis Parameters')
-start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
+# Sidebar to choose between stock analysis and portfolio optimization
+option = st.sidebar.radio("Choose Analysis:", ("Stock Analysis", "Portfolio Optimization"))
 
-# Ticker symbol selection
-tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
-tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
+# Stock Analysis
+if option == "Stock Analysis":
+    st.sidebar.subheader('Stock Analysis Parameters')
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
+    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
+    tickerData = yf.Ticker(tickerSymbol)
 
-# Fetching ticker information
-string_name = tickerData.info.get('longName', 'N/A')
-st.subheader(f"Stock: **{tickerSymbol} - {string_name}**")
+    # Fetching ticker information
+    string_name = tickerData.info.get('longName', 'N/A')
+    st.subheader(f"Stock: **{tickerSymbol} - {string_name}**")
 
-string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
-st.info(string_summary)
+    string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
+    st.info(string_summary)
 
-# Ticker data
-st.header('**Historical Stock Data**')
-tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)  # Get historical prices
-st.write(tickerDf)
+    # Ticker data
+    st.header('**Historical Stock Data**')
+    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
+    st.write(tickerDf)
 
-# Check if 'Close' column exists and there are enough data points
-if 'Close' in tickerDf.columns and len(tickerDf) > 1:
-    # Daily Returns
-    st.header('**Daily Returns**')
-    daily_returns = tickerDf['Close'].pct_change()
-    st.write(daily_returns)
+    # Check if 'Close' column exists and there are enough data points
+    if 'Close' in tickerDf.columns and len(tickerDf) > 1:
+        # Daily Returns
+        st.header('**Daily Returns**')
+        daily_returns = tickerDf['Close'].pct_change()
+        st.write(daily_returns)
 
-    # Cumulative Returns
-    st.header('**Cumulative Returns**')
-    cumulative_returns = daily_returns.cumsum()
-    st.write(cumulative_returns)
+        # Cumulative Returns
+        st.header('**Cumulative Returns**')
+        cumulative_returns = daily_returns.cumsum()
+        st.write(cumulative_returns)
 
-    # Bollinger bands
-    st.header('**Bollinger Bands**')
-    qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
-    qf.add_bollinger_bands()
-    fig = qf.iplot(asFigure=True)
-    st.plotly_chart(fig)
+        # Bollinger bands
+        st.header('**Bollinger Bands**')
+        qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
+        qf.add_bollinger_bands()
+        fig = qf.iplot(asFigure=True)
+        st.plotly_chart(fig)
 
-    # Ichimoku Cloud
-    st.header('**Ichimoku Cloud**')
+        # Ichimoku Cloud
+        st.header('**Ichimoku Cloud**')
 
-    # Calculate Ichimoku Cloud data
-    indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
-    tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
-    tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
-    tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
-    tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
+        # Calculate Ichimoku Cloud data
+        indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
+        tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
+        tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
+        tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
+        tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
 
-    # Plot Ichimoku Cloud
-    fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
-                                    go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
-                                    go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
-                                    go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
-                                layout=go.Layout(title='Ichimoku Cloud'))
-    st.plotly_chart(fig_ichimoku)
+        # Plot Ichimoku Cloud
+        fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
+                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
+                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
+                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
+                                    layout=go.Layout(title='Ichimoku Cloud'))
+        st.plotly_chart(fig_ichimoku)
 
-    # Stock Price Prediction using LSTM
-    st.header('**Stock Price Prediction using LSTM**')
+        # Stock Price Prediction using LSTM
+        st.header('**Stock Price Prediction using LSTM**')
 
-    # Prepare the data for prediction
-    data = tickerDf['Close'].values.reshape(-1, 1)
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled_data = scaler.fit_transform(data)
+        # Prepare the data for prediction
+        data = tickerDf['Close'].values.reshape(-1, 1)
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaled_data = scaler.fit_transform(data)
 
-    # Create sequences
-    def create_sequences(data, seq_length):
-        X, y = [], []
-        for i in range(len(data) - seq_length):
-            X.append(data[i:i + seq_length])
-            y.append(data[i + seq_length])
-        return np.array(X), np.array(y)
+        # Create sequences
+        def create_sequences(data, seq_length):
+            X, y = [], []
+            for i in range(len(data) - seq_length):
+                X.append(data[i:i + seq_length])
+                y.append(data[i + seq_length])
+            return np.array(X), np.array(y)
 
-    seq_length = 60
-    X, y = create_sequences(scaled_data, seq_length)
+        seq_length = 60
+        X, y = create_sequences(scaled_data, seq_length)
 
-    # Split data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+        # Split data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
-    # Build the LSTM model
-    model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-    model.add(LSTM(units=50))
-    model.add(Dense(units=1))
+        # Build the LSTM model
+        model = Sequential()
+        model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+        model.add(LSTM(units=50))
+        model.add(Dense(units=1))
 
-    # Compile and fit the model
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(X_train, y_train, epochs=20, batch_size=64)
+        # Compile and fit the model
+        model.compile(optimizer='adam', loss='mean_squared_error')
+        model.fit(X_train, y_train, epochs=20, batch_size=64)
 
-    # Make predictions
-    predictions = model.predict(X_test)
-    predictions = scaler.inverse_transform(predictions)
+        # Make predictions
+        predictions = model.predict(X_test)
+        predictions = scaler.inverse_transform(predictions)
 
-    # Plot actual vs predicted prices
-    st.header('**Actual vs Predicted Prices**')
-    prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
-    st.write(prediction_df)
+        # Plot actual vs predicted prices
+        st.header('**Actual vs Predicted Prices**')
+        prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
+        st.write(prediction_df)
 
-    fig_pred = go.Figure()
-    fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
-    fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
-    fig_pred.update_layout(title='Actual vs Predicted Prices')
-    st.plotly_chart(fig_pred)
+        fig_pred = go.Figure()
+        fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
+        fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
+        fig_pred.update_layout(title='Actual vs Predicted Prices')
+        st.plotly_chart(fig_pred)
 
-    # Portfolio Optimization
-    st.header('**Portfolio Optimization**')
-    st.write("Please use the sidebar to provide multiple ticker symbols for portfolio optimization.")
+    else:
+        st.error("Failed to compute daily returns. Please check if the 'Close' column exists and there are enough data points.")
 
-    # Sidebar for portfolio optimization
-    st.sidebar.subheader('Portfolio Optimization')
+# Portfolio Optimization
+elif option == "Portfolio Optimization":
+    st.sidebar.subheader('Portfolio Optimization Parameters')
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
     tickers = [x.strip() for x in tickerSymbols.split(',')]
-
-    # Fetching data for selected tickers
     data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
 
     # Check if data is available for selected tickers
     if not data.empty:
-        # Display selected ticker data
-        st.subheader('**Selected Ticker Data**')
-        st.write(data)
-
         # Calculate expected returns and sample covariance
         mu = expected_returns.mean_historical_return(data)
         Sigma = risk_models.sample_cov(data)
@@ -158,6 +156,10 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         raw_weights = ef.max_sharpe()
         cleaned_weights = ef.clean_weights()
         expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
+
+        # Display selected ticker data
+        st.subheader('**Selected Ticker Data**')
+        st.write(data)
 
         # Display optimized portfolio weights
         st.subheader('**Optimized Portfolio Weights**')
@@ -185,6 +187,3 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
-
-else:
-    st.error("Failed to compute daily returns. Please check if the 'Close' column exists and there are enough data points.")
