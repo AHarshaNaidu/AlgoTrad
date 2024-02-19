@@ -13,4 +13,4 @@ scikit-learn
 ta
 requests
 Python-IO
-pyportfolioopt
+pyportfolioopt==1.5.5
