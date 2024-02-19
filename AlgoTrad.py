@@ -137,11 +137,6 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
 else:
     st.error("Failed to compute daily returns. Please check if the 'Close' column exists and there are enough data points.")
 
-# Sidebar
-st.sidebar.subheader('Query parameters')
-start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
-end_date = st.sidebar.date_input("End date", datetime.date(2021, 1, 31))
-
 # Ticker symbol selection
 tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 tickers = [x.strip() for x in tickerSymbols.split(',')]
@@ -171,4 +166,3 @@ else:
     # Display optimized portfolio weights
     st.header('**Optimized Portfolio Weights**')
     st.write(pd.Series(cleaned_weights))
-    
