@@ -166,11 +166,9 @@ elif option == "Stock Price Prediction":
 # Portfolio Optimization
 elif option == "Portfolio Optimization":
     st.sidebar.subheader('Portfolio Optimization Parameters')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
     tickers = [x.strip() for x in tickerSymbols.split(',')]
-    data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+    data = yf.download(tickers)['Adj Close']
 
     # Check if data is available for selected tickers
     if not data.empty:
