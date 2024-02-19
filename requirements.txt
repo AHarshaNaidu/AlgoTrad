@@ -11,4 +11,5 @@ datetime
 tensorflow
 scikit-learn
 ta
+requests
 Python-IO
