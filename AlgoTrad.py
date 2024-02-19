@@ -18,53 +18,48 @@ from pypfopt import expected_returns
 # App title and description
 st.markdown('''
 # Algorithmic Trading Strategies
-Scale +91 Hackathon | FFI 2024
-# Team GARUDA
-Akula Sri Harsha Sri Sai Hanuman (LinkedIN.com/in/AHarshaNaidu)
+*Scale +91 Hackathon | FFI 2024*
+## Team GARUDA
+_Akula Sri Harsha Sri Sai Hanuman (LinkedIn.com/in/AHarshaNaidu)_
 
 This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
 ''')
 st.write('---')
 
 # Sidebar to choose between different analysis options
-option = st.sidebar.radio("Choose Analysis:", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
+option = st.sidebar.radio("Select Analysis:", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
 # Stock Analysis
 if option == "Stock Analysis":
     st.sidebar.subheader('Stock Analysis Parameters')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
-    tickerData = yf.Ticker(tickerSymbol)
 
     # Fetching ticker information
+    tickerData = yf.Ticker(tickerSymbol)
     string_name = tickerData.info.get('longName', 'N/A')
-    st.subheader(f"Stock: **{tickerSymbol} - {string_name}**")
-
     string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
+
+    st.subheader(f"**Stock Analysis: {tickerSymbol} - {string_name}**")
     st.info(string_summary)
 
     # Ticker data
     st.header('**Historical Stock Data**')
+    start_date = st.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.date_input("End Date", datetime.date(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
     st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
-        # Use st.columns to create two columns
-        returns_columns = st.columns(2)
-
         # Display Daily Returns
-        with returns_columns[0]:
-            st.header('**Daily Returns**')
-            daily_returns = tickerDf['Close'].pct_change()
-            st.write(daily_returns)
+        st.header('**Daily Returns**')
+        daily_returns = tickerDf['Close'].pct_change()
+        st.write(daily_returns)
 
         # Display Cumulative Returns
-        with returns_columns[1]:
-            st.header('**Cumulative Returns**')
-            cumulative_returns = daily_returns.cumsum()
-            st.write(cumulative_returns)
+        st.header('**Cumulative Returns**')
+        cumulative_returns = daily_returns.cumsum()
+        st.write(cumulative_returns)
 
         # Bollinger bands
         st.header('**Bollinger Bands**')
@@ -97,17 +92,18 @@ if option == "Stock Analysis":
 # Stock Price Prediction
 elif option == "Stock Price Prediction":
     st.sidebar.subheader('Stock Prediction Parameters')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
-    tickerData = yf.Ticker(tickerSymbol)
 
     # Fetching ticker information
+    tickerData = yf.Ticker(tickerSymbol)
     string_name = tickerData.info.get('longName', 'N/A')
-    st.subheader(f"Stock: **{tickerSymbol} - {string_name}**")
+
+    st.subheader(f"**Stock Price Prediction: {tickerSymbol} - {string_name}**")
 
     # Ticker data
     st.header('**Historical Stock Data**')
+    start_date = st.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.date_input("End Date", datetime.date(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
     st.write(tickerDf)
 
@@ -167,6 +163,8 @@ elif option == "Stock Price Prediction":
 elif option == "Portfolio Optimization":
     st.sidebar.subheader('Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+
+    # Fetching data for selected tickers
     tickers = [x.strip() for x in tickerSymbols.split(',')]
     data = yf.download(tickers)['Adj Close']
 
