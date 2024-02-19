@@ -42,7 +42,7 @@ def merge_df_by_column_name(col_name, sdate, edate, *dfs):
 # Function for Markowitz portfolio optimization
 def markowitz_portfolio_optimization(returns, risk_free_rate):
     # Placeholder implementation
-    max_sharpe_return = returns.mean() * 252
+    max_sharpe_return = returns.mean().mean() * 252
     max_sharpe_volatility = returns.std() * np.sqrt(252)
     max_sharpe_weight = np.ones(len(returns.columns)) / len(returns.columns)
     return max_sharpe_return, max_sharpe_volatility, max_sharpe_weight
