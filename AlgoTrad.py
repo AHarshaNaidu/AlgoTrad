@@ -15,15 +15,54 @@ from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
 
-# App title and description
-st.markdown('''
-# Algorithmic Trading Strategies
-*Scale +91 Hackathon | FFI 2024*
-## Team GARUDA
-_Akula Sri Harsha Sri Sai Hanuman (LinkedIn.com/in/AHarshaNaidu)_
+# Set custom theme colors
+PRIMARY_COLOR = "#E63946"  # Red
+BACKGROUND_COLOR = "#F1FAEE"  # Light green
+TEXT_COLOR = "#264653"  # Dark blue
 
-This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
-''')
+# Set page configuration
+st.set_page_config(
+    page_title="Algorithmic Trading Strategies",
+    page_icon=":chart_with_upwards_trend:",
+    layout="centered",
+    initial_sidebar_state="auto",
+)
+
+# App title and description
+st.markdown(
+    """
+    <style>
+        .reportview-container .markdown-text-container {
+            font-family: 'Arial';
+            color: #264653;
+        }
+        .reportview-container {
+            background-color: #F1FAEE;
+        }
+        .sidebar .sidebar-content {
+            background-color: #E63946;
+            color: #FFFFFF;
+        }
+        .Widget>label {
+            color: #264653;
+        }
+        .sidebar .sidebar-content .sidebar-close {
+            color: #FFFFFF;
+        }
+        .css-17eq0hr-TooltipWrapper.e1g9ojyy0 {
+            background-color: #264653;
+            color: #FFFFFF;
+        }
+    </style>
+    <h1>Algorithmic Trading Strategies</h1>
+    <h3>Scale +91 Hackathon | FFI 2024</h3>
+    <h2>Team GARUDA</h2>
+    <h4>Akula Sri Harsha Sri Sai Hanuman (<a href="https://www.linkedin.com/in/AHarshaNaidu" style="color: #E63946;">LinkedIn</a>)</h4>
+    <p>This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.</p>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.write('---')
 
 # Sidebar to choose between different analysis options
