@@ -1,5 +1,6 @@
 pip==24.0
 streamlit
+sqlite3
 yfinance
 plotly
 cufflinks
