@@ -10,6 +10,10 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
+import pypfopt
+from pypfopt.efficient_frontier import EfficientFrontier
+from pypfopt import risk_models
+from pypfopt import expected_returns
 
 # App title
 st.markdown('''
@@ -132,3 +136,47 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
     st.plotly_chart(fig_pred)
 else:
     st.error("Failed to compute daily returns. Please check if the 'Close' column exists and there are enough data points.")
+
+# App title
+st.markdown('''
+# Algorithmic Trading Strategies
+Scale +91 Hackathon | FFI 2024
+# Team GARUDA
+Akula Sri Harsha Sri Sai Hanuman (LinkedIN.com/in/AHarshaNaidu)
+''')
+st.write('---')
+
+# Sidebar
+st.sidebar.subheader('Query parameters')
+start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
+end_date = st.sidebar.date_input("End date", datetime.date(2021, 1, 31))
+
+# Ticker symbol selection
+tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+tickers = [x.strip() for x in tickerSymbols.split(',')]
+
+# Fetching data for selected tickers
+data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+
+# Check if data is available for selected tickers
+if data.empty:
+    st.error("No data available for selected tickers. Please check your input.")
+
+else:
+    # Display selected ticker data
+    st.header('**Selected Ticker Data**')
+    st.write(data)
+
+    # Calculate expected returns and sample covariance
+    mu = expected_returns.mean_historical_return(data)
+    Sigma = risk_models.sample_cov(data)
+
+    # Perform portfolio optimization
+    ef = EfficientFrontier(mu, Sigma)
+    raw_weights = ef.max_sharpe()
+    cleaned_weights = ef.clean_weights()
+    ef.portfolio_performance(verbose=True)
+
+    # Display optimized portfolio weights
+    st.header('**Optimized Portfolio Weights**')
+    st.write(pd.Series(cleaned_weights))
