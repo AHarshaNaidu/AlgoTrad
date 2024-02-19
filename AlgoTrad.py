@@ -137,15 +137,6 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
 else:
     st.error("Failed to compute daily returns. Please check if the 'Close' column exists and there are enough data points.")
 
-# App title
-st.markdown('''
-# Algorithmic Trading Strategies
-Scale +91 Hackathon | FFI 2024
-# Team GARUDA
-Akula Sri Harsha Sri Sai Hanuman (LinkedIN.com/in/AHarshaNaidu)
-''')
-st.write('---')
-
 # Sidebar
 st.sidebar.subheader('Query parameters')
 start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
