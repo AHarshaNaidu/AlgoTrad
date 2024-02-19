@@ -1,4 +1,4 @@
-pip freeze
+pip
 streamlit==1.31.1
 yfinance
 plotly
