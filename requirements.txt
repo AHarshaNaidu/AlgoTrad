@@ -7,10 +7,9 @@ matplotlib
 yfinance
 pandas
 numpy
+datetime
 tensorflow
 scikit-learn
 ta
-cvxpy
-os
 requests
 io
