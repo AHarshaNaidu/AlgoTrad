@@ -14,50 +14,44 @@ import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
-from pypfopt import risk_models, expected_returns
-from pypfopt.efficient_frontier import EfficientFrontier
 
-# App title
+# App title and description
 st.markdown('''
 # Algorithmic Trading Strategies
 Scale +91 Hackathon | FFI 2024
 # Team GARUDA
 Akula Sri Harsha Sri Sai Hanuman (LinkedIN.com/in/AHarshaNaidu)
+
+This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
 ''')
 st.write('---')
 
 # Sidebar
-st.sidebar.subheader('Query parameters')
-start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
-end_date = st.sidebar.date_input("End date", datetime.date(2021, 1, 31))
+st.sidebar.subheader('Analysis Parameters')
+start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
+end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
 
 # Ticker symbol selection
 tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
-tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)  # Get historical prices
 
-# Ticker information
-string_logo = ''
-if 'logo_url' in tickerData.info:
-    string_logo = '<img src=%s>' % tickerData.info['logo_url']
-    st.markdown(string_logo, unsafe_allow_html=True)
-
+# Fetching ticker information
 string_name = tickerData.info.get('longName', 'N/A')
-st.header('**%s**' % string_name)
+st.subheader(f"Stock: **{tickerSymbol} - {string_name}**")
 
 string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
 st.info(string_summary)
 
 # Ticker data
-st.header('**Ticker data**')
+st.header('**Historical Stock Data**')
+tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)  # Get historical prices
 st.write(tickerDf)
 
 # Check if 'Close' column exists and there are enough data points
 if 'Close' in tickerDf.columns and len(tickerDf) > 1:
     # Daily Returns
     st.header('**Daily Returns**')
-    tickerDf_cleaned = tickerDf.dropna()  # Drop rows with missing values
-    daily_returns = tickerDf_cleaned['Close'].pct_change()
+    daily_returns = tickerDf['Close'].pct_change()
     st.write(daily_returns)
 
     # Cumulative Returns
@@ -67,7 +61,7 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
 
     # Bollinger bands
     st.header('**Bollinger Bands**')
-    qf = cf.QuantFig(tickerDf, title='First Quant Figure', legend='top', name='GS')
+    qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
     qf.add_bollinger_bands()
     fig = qf.iplot(asFigure=True)
     st.plotly_chart(fig)
@@ -137,7 +131,12 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
     fig_pred.update_layout(title='Actual vs Predicted Prices')
     st.plotly_chart(fig_pred)
 
-    # Ticker symbol selection
+    # Portfolio Optimization
+    st.header('**Portfolio Optimization**')
+    st.write("Please use the sidebar to provide multiple ticker symbols for portfolio optimization.")
+
+    # Sidebar for portfolio optimization
+    st.sidebar.subheader('Portfolio Optimization')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
     tickers = [x.strip() for x in tickerSymbols.split(',')]
 
@@ -145,11 +144,9 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
     data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
 
     # Check if data is available for selected tickers
-    if data.empty:
-        st.error("No data available for selected tickers. Please check your input.")
-    else:
+    if not data.empty:
         # Display selected ticker data
-        st.header('**Selected Ticker Data**')
+        st.subheader('**Selected Ticker Data**')
         st.write(data)
 
         # Calculate expected returns and sample covariance
@@ -163,11 +160,11 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
 
         # Display optimized portfolio weights
-        st.header('**Optimized Portfolio Weights**')
+        st.subheader('**Optimized Portfolio Weights**')
         st.write(pd.Series(cleaned_weights))
 
         # Plot Efficient Frontier
-        st.header('**Efficient Frontier**')
+        st.subheader('**Efficient Frontier**')
         fig = go.Figure()
         for ticker in tickers:
             fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
@@ -181,9 +178,13 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         st.plotly_chart(fig)
 
         # Display portfolio metrics
-        st.subheader('Portfolio Metrics')
+        st.subheader('**Portfolio Metrics**')
         st.write(f'Expected Annual Return: {expected_return:.2%}')
         st.write(f'Annual Volatility: {annual_volatility:.2%}')
         st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
+
+    else:
+        st.error("No data available for selected tickers. Please check your input.")
+
 else:
     st.error("Failed to compute daily returns. Please check if the 'Close' column exists and there are enough data points.")
