@@ -1,5 +1,5 @@
 pip==24.0
-streamlit==1.31.1
+streamlit
 yfinance
 plotly
 cufflinks
@@ -11,4 +11,3 @@ datetime
 tensorflow
 scikit-learn
 ta
-requests
