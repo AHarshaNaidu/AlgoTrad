@@ -14,6 +14,8 @@ import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
+from pypfopt import risk_models, expected_returns
+from pypfopt.efficient_frontier import EfficientFrontier
 
 # App title
 st.markdown('''
@@ -166,3 +168,25 @@ else:
     # Display optimized portfolio weights
     st.header('**Optimized Portfolio Weights**')
     st.write(pd.Series(cleaned_weights))
+
+ # Plot Efficient Frontier
+        st.header('**Efficient Frontier**')
+        fig = go.Figure()
+        for ticker in tickers:
+            fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
+
+        # Highlighting the optimized portfolio
+        fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
+
+        fig.update_layout(title='Efficient Frontier',
+                          xaxis_title='Annual Volatility',
+                          yaxis_title='Expected Annual Return')
+        st.plotly_chart(fig)
+
+        # Display portfolio metrics
+        st.subheader('Portfolio Metrics')
+        st.write(f'Expected Annual Return: {expected_return:.2%}')
+        st.write(f'Annual Volatility: {annual_volatility:.2%}')
+        st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
+else:
+    st.error("Failed to compute portfolio optimization. Please check if the 'Close' column exists and there are enough data points.")
