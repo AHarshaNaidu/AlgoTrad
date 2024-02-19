@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
-import requests
+import requestsA
 import io
 from os import listdir
 from os.path import isfile, join
@@ -44,14 +44,42 @@ def merge_df_by_column_name(col_name, sdate, edate, *dfs):
 # Function for Markowitz portfolio optimization
 # Function for Markowitz portfolio optimization
 def markowitz_portfolio_optimization(returns, risk_free_rate):
-    # Placeholder implementation
-    returns_numeric = pd.DataFrame()  # Create an empty DataFrame to store numeric values
-    for column in returns.columns:
-        returns_numeric[column] = pd.to_numeric(returns[column], errors='coerce')  # Convert values to numeric, coerce errors to NaN
-        returns_numeric = returns_numeric.dropna()  # Drop rows with NaN values
-    max_sharpe_volatility = returns_numeric.std() * np.sqrt(252)
-    max_sharpe_weight = np.ones(len(returns.columns)) / len(returns.columns)
-    max_sharpe_return = 0  # Placeholder for max sharpe return calculation
+    # Calculate expected returns
+    expected_returns = returns.mean() * 252
+
+    # Calculate covariance matrix
+    cov_matrix = returns.cov() * 252
+
+    # Number of assets
+    num_assets = len(expected_returns)
+
+    # Set up optimization parameters
+    initial_weights = np.ones(num_assets) / num_assets
+
+    # Define optimization objective (Maximize Sharpe Ratio)
+    def objective(weights):
+        portfolio_return = np.sum(expected_returns * weights)
+        portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+        sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_volatility
+        return -sharpe_ratio  # Negative because we want to maximize
+
+    # Define constraints (sum of weights equals 1)
+    constraints = ({'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1})
+
+    # Define bounds (each weight should be between 0 and 1)
+    bounds = tuple((0, 1) for _ in range(num_assets))
+
+    # Run optimization
+    from scipy.optimize import minimize
+    result = minimize(objective, initial_weights, method='SLSQP', bounds=bounds, constraints=constraints)
+
+    # Get optimized weights
+    max_sharpe_weight = result.x
+
+    # Calculate portfolio return and volatility with optimized weights
+    max_sharpe_return = np.sum(expected_returns * max_sharpe_weight)
+    max_sharpe_volatility = np.sqrt(np.dot(max_sharpe_weight.T, np.dot(cov_matrix, max_sharpe_weight)))
+
     return max_sharpe_return, max_sharpe_volatility, max_sharpe_weight
 
 # Streamlit app
