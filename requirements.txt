@@ -11,3 +11,4 @@ tensorflow
 scikit-learn
 ta
 cvxpy
+os
