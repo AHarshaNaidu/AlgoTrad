@@ -1,4 +1,5 @@
 import streamlit as st
+import sqlite3
 import yfinance as yf
 import pandas as pd
 import cufflinks as cf
@@ -15,6 +16,27 @@ from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
 
+# Create or connect to the SQLite database
+conn = sqlite3.connect('user_credentials.db')
+c = conn.cursor()
+
+# Create a table to store user credentials if it doesn't exist
+c.execute('''CREATE TABLE IF NOT EXISTS users
+             (username TEXT PRIMARY KEY, password TEXT)''')
+conn.commit()
+
+def create_new_account(username, password):
+    try:
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+
+def verify_credentials(username, password):
+    c.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
+    return c.fetchone() is not None
+
 # App title and description
 st.markdown('''
 # Algorithmic Trading Strategies
@@ -25,6 +47,36 @@ Akula Sri Harsha Sri Sai Hanuman (LinkedIN.com/in/AHarshaNaidu)
 This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
 ''')
 st.write('---')
+
+# Login page
+def login():
+    st.title("Login Page")
+
+    # Login or create new account
+    action = st.radio("Choose Action:", ("Login", "Create New Account"))
+
+    if action == "Login":
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+
+        if st.button("Login"):
+            if verify_credentials(username, password):
+                st.success("Login successful!")
+                # Redirect to main app here
+            else:
+                st.error("Invalid username or password")
+
+    elif action == "Create New Account":
+        new_username = st.text_input("New Username")
+        new_password = st.text_input("New Password", type="password")
+
+        if st.button("Create Account"):
+            if create_new_account(new_username, new_password):
+                st.success("Account created successfully!")
+            else:
+                st.error("Username already exists")
+
+login()
 
 # Sidebar to choose between stock analysis and portfolio optimization
 option = st.sidebar.radio("Choose Analysis:", ("Stock Analysis", "Portfolio Optimization"))
