@@ -136,54 +136,54 @@ if 'Close' in tickerDf.columns and len(tickerDf) > 1:
     fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
     fig_pred.update_layout(title='Actual vs Predicted Prices')
     st.plotly_chart(fig_pred)
+
+    # Ticker symbol selection
+    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+    tickers = [x.strip() for x in tickerSymbols.split(',')]
+
+    # Fetching data for selected tickers
+    data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+
+    # Check if data is available for selected tickers
+    if data.empty:
+        st.error("No data available for selected tickers. Please check your input.")
+    else:
+        # Display selected ticker data
+        st.header('**Selected Ticker Data**')
+        st.write(data)
+
+        # Calculate expected returns and sample covariance
+        mu = expected_returns.mean_historical_return(data)
+        Sigma = risk_models.sample_cov(data)
+
+        # Perform portfolio optimization
+        ef = EfficientFrontier(mu, Sigma)
+        raw_weights = ef.max_sharpe()
+        cleaned_weights = ef.clean_weights()
+        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
+
+        # Display optimized portfolio weights
+        st.header('**Optimized Portfolio Weights**')
+        st.write(pd.Series(cleaned_weights))
+
+        # Plot Efficient Frontier
+        st.header('**Efficient Frontier**')
+        fig = go.Figure()
+        for ticker in tickers:
+            fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
+
+        # Highlighting the optimized portfolio
+        fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
+
+        fig.update_layout(title='Efficient Frontier',
+                          xaxis_title='Annual Volatility',
+                          yaxis_title='Expected Annual Return')
+        st.plotly_chart(fig)
+
+        # Display portfolio metrics
+        st.subheader('Portfolio Metrics')
+        st.write(f'Expected Annual Return: {expected_return:.2%}')
+        st.write(f'Annual Volatility: {annual_volatility:.2%}')
+        st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
 else:
     st.error("Failed to compute daily returns. Please check if the 'Close' column exists and there are enough data points.")
-
-# Ticker symbol selection
-tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
-tickers = [x.strip() for x in tickerSymbols.split(',')]
-
-# Fetching data for selected tickers
-data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
-
-# Check if data is available for selected tickers
-if data.empty:
-    st.error("No data available for selected tickers. Please check your input.")
-else:
-    # Display selected ticker data
-    st.header('**Selected Ticker Data**')
-    st.write(data)
-
-    # Calculate expected returns and sample covariance
-    mu = expected_returns.mean_historical_return(data)
-    Sigma = risk_models.sample_cov(data)
-
-    # Perform portfolio optimization
-    ef = EfficientFrontier(mu, Sigma)
-    raw_weights = ef.max_sharpe()
-    cleaned_weights = ef.clean_weights()
-    ef.portfolio_performance(verbose=True)
-
-    # Display optimized portfolio weights
-    st.header('**Optimized Portfolio Weights**')
-    st.write(pd.Series(cleaned_weights))
-
-    # Plot Efficient Frontier
-    st.header('**Efficient Frontier**')
-    fig = go.Figure()
-    for ticker in tickers:
-        fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
-
-    # Highlighting the optimized portfolio
-    fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
-
-    fig.update_layout(title='Efficient Frontier',
-                      xaxis_title='Annual Volatility',
-                      yaxis_title='Expected Annual Return')
-    st.plotly_chart(fig)
-
-    # Display portfolio metrics
-    st.subheader('Portfolio Metrics')
-    st.write(f'Expected Annual Return: {expected_return:.2%}')
-    st.write(f'Annual Volatility: {annual_volatility:.2%}')
-    st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
