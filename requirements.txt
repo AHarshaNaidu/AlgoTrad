@@ -12,4 +12,3 @@ tensorflow
 scikit-learn
 ta
 requests
-io
