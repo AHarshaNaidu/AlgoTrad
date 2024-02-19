@@ -22,22 +22,20 @@ def get_stock_file_names(path):
     return tickers
 
 # Function to return a DataFrame from a CSV
-def get_stock_df_from_csv(ticker):
-    path = "PATH_TO_CSV_FILES/"
+def get_stock_df_from_csv(url):
     try:
-        df = pd.read_csv(path + ticker + '.csv', index_col=0)
+        df = pd.read_csv(url, index_col=0)
     except FileNotFoundError as ex:
         print(ex)
     else:
         return df
 
 # Function to merge multiple stocks into one DataFrame by column name
-def merge_df_by_column_name(col_name, sdate, edate, *tickers):
+def merge_df_by_column_name(col_name, sdate, edate, *dfs):
     mult_df = pd.DataFrame()
-    for x in tickers:
-        df = get_stock_df_from_csv(x)
+    for df in dfs:
         mask = (df.index >= sdate) & (df.index <= edate)
-        mult_df[x] = df.loc[mask][col_name]
+        mult_df[df.columns[0]] = df.loc[mask][col_name]
     return mult_df
 
 # Function for Markowitz portfolio optimization
@@ -56,8 +54,8 @@ def main():
 
         # Sidebar for query parameters
         st.sidebar.header("Query Parameters")
-        start_date = st.sidebar.date_input("Start Date", value=datetime.date(2019, 1, 1))
-        end_date = st.sidebar.date_input("End Date", value=datetime.date(2021, 1, 31))
+        start_date = st.sidebar.date_input("Start Date", value=pd.to_datetime('2019-01-01'))
+        end_date = st.sidebar.date_input("End Date", value=pd.to_datetime('2021-01-31'))
 
         # Retrieving tickers data
         url = 'https://raw.githubusercontent.com/AHarshaNaidu/AlgoTrad/main/Bombay.csv'
@@ -176,26 +174,25 @@ def main():
     elif choice == "Portfolio Optimization":
         st.title("Portfolio Optimization")
 
-        # Get list of available tickers
-        tickers = get_stock_file_names("PATH_TO_CSV_FILES/")
-        selected_tickers = st.multiselect("Select Tickers", tickers)
+        # Retrieving portfolio data
+        url_portfolio = 'https://raw.githubusercontent.com/AHarshaNaidu/AlgoTrad/main/Bombay.csv'
+        portfolio_df = get_stock_df_from_csv(url_portfolio)
 
-        # Merge selected tickers into one DataFrame
-        if selected_tickers:
-            merged_df = merge_df_by_column_name("Close", datetime.date(2017, 1, 1), datetime.date(2021, 12, 31), *selected_tickers)
-            st.write(merged_df)
-
-            # Calculate returns
-            returns = np.log(merged_df / merged_df.shift(1))
+        # Check if the DataFrame is not empty
+        if portfolio_df is not None:
+            # Display portfolio data
+            st.write(portfolio_df)
 
             # Portfolio optimization
-            risk_free_rate = 0.05  # Example risk-free rate
-            max_sharpe_return, max_sharpe_volatility, max_sharpe_weight = markowitz_portfolio_optimization(returns, risk_free_rate)
+            risk_free_rate_portfolio = 0.05  # Example risk-free rate
+            max_sharpe_return_portfolio, max_sharpe_volatility_portfolio, max_sharpe_weight_portfolio = markowitz_portfolio_optimization(portfolio_df, risk_free_rate_portfolio)
 
             st.header("Portfolio Optimization Results")
-            st.write("Max Sharpe Ratio Portfolio Return:", max_sharpe_return)
-            st.write("Max Sharpe Ratio Portfolio Volatility:", max_sharpe_volatility)
-            st.write("Max Sharpe Ratio Portfolio Weight:", max_sharpe_weight)
+            st.write("Max Sharpe Ratio Portfolio Return:", max_sharpe_return_portfolio)
+            st.write("Max Sharpe Ratio Portfolio Volatility:", max_sharpe_volatility_portfolio)
+            st.write("Max Sharpe Ratio Portfolio Weight:", max_sharpe_weight_portfolio)
+        else:
+            st.error("Failed to fetch portfolio data from the provided URL.")
 
 # Run the app
 if __name__ == "__main__":
