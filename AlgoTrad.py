@@ -37,8 +37,8 @@ def create_sequences(data, seq_length):
         y.append(data[i + seq_length])
     return np.array(X), np.array(y)
 
-# Main function
-def main():
+# Main function for Stock Analytics
+def stock_analytics():
     # App title
     st.markdown('''
     # Algorithmic Trading Strategies
@@ -58,11 +58,6 @@ def main():
     tickerDf = get_ticker_data(tickerSymbol, start_date, end_date)
 
     # Ticker information
-    string_logo = ''
-    if hasattr(tickerDf, 'info') and 'logo_url' in tickerDf.info:
-        string_logo = '<img src=%s>' % tickerDf.info['logo_url']
-        st.markdown(string_logo, unsafe_allow_html=True)
-
     string_name = tickerDf.info.get('longName', 'N/A')
     st.header('**%s**' % string_name)
 
@@ -165,7 +160,7 @@ def portfolio_optimization():
 # App navigation
 if __name__ == '__main__':
     pages = {
-        "Main": main,
+        "Stock Analytics": stock_analytics,
         "Portfolio Optimization": portfolio_optimization
     }
 
