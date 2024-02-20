@@ -43,7 +43,7 @@ option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Port
 def visualize_returns(returns):
     returns_with_nan = returns.copy()
     returns_with_nan[np.isnan(returns)] = np.nan
-    arrows = ['↑' if np.isnan(r) or r >= 0 else '↓' for r in returns_with_nan]
+    arrows = ['↑' if np.isnan(r) else '↑' if r >= 0 else '↓' for r in returns_with_nan]
     colors = ['white' if np.isnan(r) else 'green' if r >= 0 else 'red' for r in returns_with_nan]
     return arrows, colors
 
@@ -76,16 +76,16 @@ if option == "Stock Analysis":
         st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
         arrows, colors = visualize_returns(daily_returns)
-        tickerDf['Daily Returns'] = daily_returns.map('{:.2%}'.format)
+        tickerDf['Daily Returns'] = daily_returns.map(lambda x: '{:.2%}'.format(x) if not np.isnan(x) else 'NaN%')
         tickerDf['Directional Indicator'] = arrows
         st.dataframe(tickerDf[['Daily Returns', 'Directional Indicator']].style.apply(lambda x: ['color: white' if v == 'NaN%' else f'color: {"green" if v == "↑" else "red"}' for v in x]))
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
-        cumulative_returns_with_arrows, cumulative_returns_colors = visualize_returns(cumulative_returns)
-        tickerDf['Cumulative Returns'] = cumulative_returns.map('{:.2%}'.format)
-        tickerDf['Directional Indicator (Cumulative)'] = cumulative_returns_with_arrows
+        cumulative_arrows, cumulative_colors = visualize_returns(cumulative_returns)
+        tickerDf['Cumulative Returns'] = cumulative_returns.map(lambda x: '{:.2%}'.format(x) if not np.isnan(x) else 'NaN%')
+        tickerDf['Directional Indicator (Cumulative)'] = cumulative_arrows
         st.dataframe(tickerDf[['Cumulative Returns', 'Directional Indicator (Cumulative)']].style.apply(lambda x: ['color: white' if v == 'NaN%' else f'color: {"green" if v == "↑" else "red"}' for v in x]))
 
         # Bollinger bands
