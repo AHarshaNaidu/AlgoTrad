@@ -42,7 +42,7 @@ option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Port
 # Function to visualize returns with arrows
 def visualize_returns(returns):
     arrows = ['↑' if r >= 0 else '↓' for r in returns]
-    return [f'{ret:.2%} {arrow}' for ret, arrow in zip(returns, arrows)]
+    return arrows
 
 # Stock Analysis
 if option == "Stock Analysis":
@@ -71,16 +71,18 @@ if option == "Stock Analysis":
         # Daily Returns
         st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
-        daily_returns_with_arrows = visualize_returns(daily_returns)
-        tickerDf['Daily Returns'] = daily_returns_with_arrows
-        st.dataframe(tickerDf['Daily Returns'])
+        arrows = visualize_returns(daily_returns)
+        tickerDf['Daily Returns'] = daily_returns.map('{:.2%}'.format)
+        tickerDf['Directional Indicator'] = arrows
+        st.dataframe(tickerDf[['Daily Returns', 'Directional Indicator']])
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
         cumulative_returns_with_arrows = visualize_returns(cumulative_returns)
-        tickerDf['Cumulative Returns'] = cumulative_returns_with_arrows
-        st.dataframe(tickerDf['Cumulative Returns'])
+        tickerDf['Cumulative Returns'] = cumulative_returns.map('{:.2%}'.format)
+        tickerDf['Directional Indicator (Cumulative)'] = cumulative_returns_with_arrows
+        st.dataframe(tickerDf[['Cumulative Returns', 'Directional Indicator (Cumulative)']])
 
         # Bollinger bands
         st.header('Bollinger Bands')
