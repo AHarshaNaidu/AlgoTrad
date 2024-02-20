@@ -71,6 +71,14 @@ if option == "Stock Analysis":
         cumulative_returns = daily_returns.cumsum()
         st.write(cumulative_returns)
 
+        # Add visual indicators for Daily Returns
+        st.header('Visual Indicators for Daily Returns')
+        visualize_returns(daily_returns)
+
+        # Add visual indicators for Cumulative Returns
+        st.header('Visual Indicators for Cumulative Returns')
+        visualize_returns(cumulative_returns)
+
         # Bollinger bands
         st.header('Bollinger Bands')
         qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
@@ -220,3 +228,10 @@ elif option == "Portfolio Optimization":
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
+
+# Function to visualize returns with arrows
+def visualize_returns(returns):
+    for i in range(1, len(returns)):
+        arrow = '↑' if returns[i] >= returns[i - 1] else '↓'
+        st.write(f"{returns.index[i]}: {returns[i]} {arrow}")
+
