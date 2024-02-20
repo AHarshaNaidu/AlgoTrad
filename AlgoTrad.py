@@ -74,14 +74,14 @@ if option == "Stock Analysis":
         st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
         daily_returns_with_nan = visualize_returns(daily_returns)
-        tickerDf['Daily Returns'] = daily_returns_with_nan.map(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>', escape=False)
+        tickerDf['Daily Returns'] = daily_returns_with_nan.map(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>', na_action='ignore', escape=False)
         st.dataframe(tickerDf[['Daily Returns']])
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
         cumulative_returns_with_nan = visualize_returns(cumulative_returns)
-        tickerDf['Cumulative Returns'] = cumulative_returns_with_nan.map(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>', escape=False)
+        tickerDf['Cumulative Returns'] = cumulative_returns_with_nan.map(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>', na_action='ignore', escape=False)
         st.dataframe(tickerDf[['Cumulative Returns']])
 
         # Bollinger bands
