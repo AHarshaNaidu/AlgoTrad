@@ -68,13 +68,13 @@ if option == "Stock Analysis":
         st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
         daily_returns_with_color = daily_returns.apply(lambda x: 'color: green' if x >= 0 else 'color: red')
-        st.dataframe(daily_returns.to_frame().style.applymap(lambda x: daily_returns_with_color[x]))
+        st.dataframe(daily_returns.to_frame().style.applymap(lambda x: daily_returns_with_color[x], subset=pd.IndexSlice[:, ['Close']]))
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
         cumulative_returns_with_color = cumulative_returns.apply(lambda x: 'color: green' if x >= 0 else 'color: red')
-        st.dataframe(cumulative_returns.to_frame().style.applymap(lambda x: cumulative_returns_with_color[x]))
+        st.dataframe(cumulative_returns.to_frame().style.applymap(lambda x: cumulative_returns_with_color[x], subset=pd.IndexSlice[:, ['Close']]))
 
         # Bollinger bands
         st.header('Bollinger Bands')
