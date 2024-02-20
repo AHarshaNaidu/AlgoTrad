@@ -41,9 +41,8 @@ option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Port
 
 # Function to visualize returns with arrows
 def visualize_returns(returns):
-    for i in range(1, len(returns)):
-        arrow = '↑' if returns[i] >= returns[i - 1] else '↓'
-        st.write(f"{returns.index[i]}: {returns[i]} {arrow}")
+    arrows = ['↑' if r >= 0 else '↓' for r in returns]
+    return [f'{ret:.2%} {arrow}' for ret, arrow in zip(returns, arrows)]
 
 # Stock Analysis
 if option == "Stock Analysis":
@@ -63,8 +62,7 @@ if option == "Stock Analysis":
     start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
     end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
-    st.write(tickerDf)
-
+    
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Display Daily Returns
@@ -73,14 +71,16 @@ if option == "Stock Analysis":
         # Daily Returns
         st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
-        st.write(daily_returns)
-        visualize_returns(daily_returns)
+        daily_returns_with_arrows = visualize_returns(daily_returns)
+        tickerDf['Daily Returns'] = daily_returns_with_arrows
+        st.dataframe(tickerDf['Daily Returns'])
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
-        st.write(cumulative_returns)
-        visualize_returns(cumulative_returns)
+        cumulative_returns_with_arrows = visualize_returns(cumulative_returns)
+        tickerDf['Cumulative Returns'] = cumulative_returns_with_arrows
+        st.dataframe(tickerDf['Cumulative Returns'])
 
         # Bollinger bands
         st.header('Bollinger Bands')
