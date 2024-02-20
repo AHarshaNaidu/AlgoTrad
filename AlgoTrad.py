@@ -39,6 +39,12 @@ st.write("This app provides various algorithmic trading strategies including tec
 st.sidebar.title("Select Analysis")
 option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
+# Function to visualize returns with arrows
+def visualize_returns(returns):
+    for i in range(1, len(returns)):
+        arrow = '↑' if returns[i] >= returns[i - 1] else '↓'
+        st.write(f"{returns.index[i]}: {returns[i]} {arrow}")
+
 # Stock Analysis
 if option == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -228,10 +234,3 @@ elif option == "Portfolio Optimization":
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
-
-# Function to visualize returns with arrows
-def visualize_returns(returns):
-    for i in range(1, len(returns)):
-        arrow = '↑' if returns[i] >= returns[i - 1] else '↓'
-        st.write(f"{returns.index[i]}: {returns[i]} {arrow}")
-
