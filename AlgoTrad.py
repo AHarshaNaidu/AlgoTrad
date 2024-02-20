@@ -68,21 +68,18 @@ if option == "Stock Analysis":
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Display Daily Returns
-        st.header('Daily Returns')
+        st.header('Returns Analysis')
+
+        # Daily Returns
+        st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
         st.write(daily_returns)
-
-        # Display Cumulative Returns
-        st.header('Cumulative Returns')
-        cumulative_returns = daily_returns.cumsum()
-        st.write(cumulative_returns)
-
-        # Add visual indicators for Daily Returns
-        st.header('Visual Indicators for Daily Returns')
         visualize_returns(daily_returns)
 
-        # Add visual indicators for Cumulative Returns
-        st.header('Visual Indicators for Cumulative Returns')
+        # Cumulative Returns
+        st.subheader('Cumulative Returns')
+        cumulative_returns = daily_returns.cumsum()
+        st.write(cumulative_returns)
         visualize_returns(cumulative_returns)
 
         # Bollinger bands
