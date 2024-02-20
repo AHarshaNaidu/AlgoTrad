@@ -71,13 +71,12 @@ if option == "Stock Analysis":
         cumulative_returns = daily_returns.cumsum()
         st.write(cumulative_returns)
 
-       # Bollinger bands
-       st.header('Bollinger Bands')
-       qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
-       qf.add_bollinger_bands()
-       fig = qf.iplot(asFigure=True, layout=dict(plot_bgcolor='rgba(0,0,0,0)'))
-       st.plotly_chart(fig)
-
+        # Bollinger bands
+        st.header('Bollinger Bands')
+        qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
+        qf.add_bollinger_bands()
+        fig = qf.iplot(asFigure=True, layout=dict(plot_bgcolor='rgba(0,0,0,0)'))
+        st.plotly_chart(fig)
 
         # Ichimoku Cloud
         st.header('Ichimoku Cloud')
