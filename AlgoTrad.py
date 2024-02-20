@@ -14,7 +14,7 @@ import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
-from pypfopt import objective_functions
+from pypfopt import exceptions
 
 # Set custom theme colors
 PRIMARY_COLOR = "#E63946"  # Red
@@ -33,22 +33,28 @@ st.set_page_config(
 st.title('Algorithmic Trading Strategies')
 st.markdown('---')
 st.markdown('Scale +91 Hackathon | FFI 2024')
-st.markdown('Team GARUDA')
 st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))")
+st.write("This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.")
 
-# Sidebar
-selected_tab = st.sidebar.radio("Select Analysis", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization", "About"))
+st.sidebar.title("Select Analysis")
+option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization", "About"))
 
 # About Page
-if selected_tab == "About":
-    st.subheader("About Algorithmic Trading Strategies")
+if option == "About":
+    st.header("About")
     st.write("""
-    Algorithmic Trading Strategies is a web application developed for the Scale +91 Hackathon organized by FFI 2024. 
-    This app is designed to provide various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
+    Algorithmic Trading Strategies
+    Scale +91 Hackathon | FFI 2024
+    
+    Team GARUDA
+    
+    Developed by: Akula Sri Harsha Sri Sai Hanuman (LinkedIn)
+    
+    This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
     """)
 
 # Stock Analysis
-elif selected_tab == "Stock Analysis":
+elif option == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
@@ -108,7 +114,7 @@ elif selected_tab == "Stock Analysis":
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
 # Stock Price Prediction
-elif selected_tab == "Stock Price Prediction":
+elif option == "Stock Price Prediction":
     st.sidebar.header('Stock Prediction Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
@@ -178,7 +184,7 @@ elif selected_tab == "Stock Price Prediction":
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
 # Portfolio Optimization
-elif selected_tab == "Portfolio Optimization":
+elif option == "Portfolio Optimization":
     st.sidebar.header('Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 
@@ -188,55 +194,32 @@ elif selected_tab == "Portfolio Optimization":
 
     # Check if data is available for selected tickers
     if not data.empty:
-        # Calculate expected returns using Exponential Moving Average
-        mu = expected_returns.ema_historical_return(data)
+        try:
+            # Calculate expected returns and sample covariance
+            mu = expected_returns.mean_historical_return(data)
+            Sigma = risk_models.sample_cov(data)
 
-        # Estimate covariance matrix using Ledoit-Wolf shrinkage
-        Sigma = risk_models.CovarianceShrinkage(data).ledoit_wolf()
+            # Perform portfolio optimization
+            ef = EfficientFrontier(mu, Sigma)
+            optimized_weights = ef.max_sharpe()
 
-        # Define optimization constraints
-        ef = EfficientFrontier(mu, Sigma)
-        ef.add_constraint(lambda x: x >= 0)  # Long-only constraint
-        ef.add_constraint(lambda x: x <= 0.2)  # Maximum individual asset allocation constraint
-        ef.add_constraint(lambda x: sum(x) == 1)  # Budget constraint
+            # Get performance metrics
+            expected_return, volatility, sharpe_ratio = ef.portfolio_performance()
 
-        # Perform portfolio optimization to maximize the Sharpe ratio
-        optimized_weights = ef.max_sharpe()
+            # Display portfolio metrics
+            st.subheader('Portfolio Metrics')
+            st.write(f'Expected Annual Return: {expected_return:.2%}')
+            st.write(f'Volatility: {volatility:.2%}')
+            st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
 
-        # Get performance metrics
-        expected_return, volatility, sharpe_ratio = ef.portfolio_performance()
+            # Backtesting and validation
+            st.subheader("Backtesting and Validation")
+            # You can add your backtesting and validation code here.
 
-        # Display selected ticker data
-        st.subheader('Selected Ticker Data')
-        st.write(data)
-
-        # Display optimized portfolio weights
-        st.subheader('Optimized Portfolio Weights')
-        st.write(pd.Series(optimized_weights))
-
-        # Plot Efficient Frontier
-        st.subheader('Efficient Frontier')
-        fig = go.Figure()
-        for ticker in tickers:
-            fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
-
-        # Highlighting the optimized portfolio
-        fig.add_trace(go.Scatter(x=[volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
-
-        fig.update_layout(title='Efficient Frontier',
-                          xaxis_title='Volatility',
-                          yaxis_title='Expected Return')
-        st.plotly_chart(fig)
-
-        # Display portfolio metrics
-        st.subheader('Portfolio Metrics')
-        st.write(f'Expected Annual Return: {expected_return:.2%}')
-        st.write(f'Volatility: {volatility:.2%}')
-        st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
-
-        # Backtesting and validation
-        st.subheader("Backtesting and Validation")
-        # You can add your backtesting and validation code here.
+        except exceptions.OptimizationError as e:
+            # Print detailed error message
+            st.error("Error occurred during optimization:")
+            st.error(str(e))
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
