@@ -28,17 +28,25 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# App title and description
-st.title('Algorithmic Trading Strategies')
-st.markdown('---')
-st.markdown('Scale +91 Hackathon | FFI 2024')
-st.markdown('Team GARUDA')
-st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))")
-st.write("This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.")
+# About page
+st.sidebar.title("About")
+st.sidebar.write(
+    """
+    **Algorithmic Trading Strategies**
 
-# Sidebar
-st.sidebar.title("Select Analysis")
-selected_tab = st.sidebar.radio("Analysis Options", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
+    *Scale +91 Hackathon | FFI 2024*
+
+    **Team GARUDA**
+
+    Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
+
+    This app provides various algorithmic trading strategies including technical analysis, 
+    stock price prediction using LSTM, and portfolio optimization.
+    """
+)
+
+# Sidebar menu
+selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
 # Stock Analysis
 if selected_tab == "Stock Analysis":
@@ -63,24 +71,24 @@ if selected_tab == "Stock Analysis":
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Display Daily Returns
-        st.subheader('Daily Returns')
+        st.header('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
         st.write(daily_returns)
 
         # Display Cumulative Returns
-        st.subheader('Cumulative Returns')
+        st.header('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
         st.write(cumulative_returns)
 
         # Bollinger bands
-        st.subheader('Bollinger Bands')
+        st.header('Bollinger Bands')
         qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
         qf.add_bollinger_bands()
         fig = qf.iplot(asFigure=True)
         st.plotly_chart(fig)
 
         # Ichimoku Cloud
-        st.subheader('Ichimoku Cloud')
+        st.header('Ichimoku Cloud')
 
         # Calculate Ichimoku Cloud data
         indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
@@ -157,7 +165,7 @@ elif selected_tab == "Stock Price Prediction":
         predictions = scaler.inverse_transform(predictions)
 
         # Plot actual vs predicted prices
-        st.subheader('Actual vs Predicted Prices')
+        st.header('Actual vs Predicted Prices')
         prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
         st.write(prediction_df)
 
