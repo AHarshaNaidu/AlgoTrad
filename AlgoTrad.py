@@ -33,14 +33,15 @@ st.title('Algorithmic Trading Strategies')
 st.markdown('---')
 st.markdown('Scale +91 Hackathon | FFI 2024')
 st.markdown('Team GARUDA')
-st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([Click Hare To View Profile](https://www.linkedin.com/in/AHarshaNaidu))")
+st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))")
 st.write("This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.")
 
+# Sidebar
 st.sidebar.title("Select Analysis")
-option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
+selected_tab = st.sidebar.radio("Analysis Options", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
 # Stock Analysis
-if option == "Stock Analysis":
+if selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
@@ -62,24 +63,24 @@ if option == "Stock Analysis":
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Display Daily Returns
-        st.header('Daily Returns')
+        st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
         st.write(daily_returns)
 
         # Display Cumulative Returns
-        st.header('Cumulative Returns')
+        st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
         st.write(cumulative_returns)
 
         # Bollinger bands
-        st.header('Bollinger Bands')
+        st.subheader('Bollinger Bands')
         qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
         qf.add_bollinger_bands()
-        fig = qf.iplot(asFigure=True, layout=dict(plot_bgcolor='rgba(0,0,0,0)'))
+        fig = qf.iplot(asFigure=True)
         st.plotly_chart(fig)
 
         # Ichimoku Cloud
-        st.header('Ichimoku Cloud')
+        st.subheader('Ichimoku Cloud')
 
         # Calculate Ichimoku Cloud data
         indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
@@ -93,14 +94,14 @@ if option == "Stock Analysis":
                                         go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
                                         go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
                                         go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
-                                    layout=go.Layout(title='Ichimoku Cloud', xaxis_title='Date', yaxis_title='Price'))
+                                    layout=go.Layout(title='Ichimoku Cloud'))
         st.plotly_chart(fig_ichimoku)
 
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
 # Stock Price Prediction
-elif option == "Stock Price Prediction":
+elif selected_tab == "Stock Price Prediction":
     st.sidebar.header('Stock Prediction Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
@@ -120,7 +121,7 @@ elif option == "Stock Price Prediction":
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Stock Price Prediction using LSTM
-        st.header('Stock Price Prediction using LSTM')
+        st.subheader('Stock Price Prediction using LSTM')
 
         # Prepare the data for prediction
         data = tickerDf['Close'].values.reshape(-1, 1)
@@ -156,21 +157,21 @@ elif option == "Stock Price Prediction":
         predictions = scaler.inverse_transform(predictions)
 
         # Plot actual vs predicted prices
-        st.header('Actual vs Predicted Prices')
+        st.subheader('Actual vs Predicted Prices')
         prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
         st.write(prediction_df)
 
         fig_pred = go.Figure()
         fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
         fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
-        fig_pred.update_layout(title='Actual vs Predicted Prices', xaxis_title='Days', yaxis_title='Price')
+        fig_pred.update_layout(title='Actual vs Predicted Prices')
         st.plotly_chart(fig_pred)
 
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
 # Portfolio Optimization
-elif option == "Portfolio Optimization":
+elif selected_tab == "Portfolio Optimization":
     st.sidebar.header('Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 
