@@ -39,6 +39,12 @@ st.write("This app provides various algorithmic trading strategies including tec
 st.sidebar.title("Select Analysis")
 option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
+# Function to visualize returns with arrows
+def visualize_returns(returns):
+    returns_with_nan = returns.copy()
+    returns_with_nan[np.isnan(returns)] = np.nan
+    return returns_with_nan
+
 # Stock Analysis
 if option == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -67,17 +73,15 @@ if option == "Stock Analysis":
         # Daily Returns
         st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
-        daily_returns_with_undefined = daily_returns.copy()
-        daily_returns_with_undefined[np.isnan(daily_returns)] = np.nan
-        tickerDf['Daily Returns'] = daily_returns_with_undefined.map(lambda x: '{:.2%}'.format(x) if not np.isnan(x) else 'undefined')
+        daily_returns_with_nan = visualize_returns(daily_returns)
+        tickerDf['Daily Returns'] = daily_returns_with_nan.map(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>', escape=False)
         st.dataframe(tickerDf[['Daily Returns']])
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
-        cumulative_returns_with_undefined = cumulative_returns.copy()
-        cumulative_returns_with_undefined[np.isnan(cumulative_returns)] = np.nan
-        tickerDf['Cumulative Returns'] = cumulative_returns_with_undefined.map(lambda x: '{:.2%}'.format(x) if not np.isnan(x) else 'undefined')
+        cumulative_returns_with_nan = visualize_returns(cumulative_returns)
+        tickerDf['Cumulative Returns'] = cumulative_returns_with_nan.map(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>', escape=False)
         st.dataframe(tickerDf[['Cumulative Returns']])
 
         # Bollinger bands
@@ -223,9 +227,9 @@ elif option == "Portfolio Optimization":
 
         # Display portfolio metrics
         st.subheader('Portfolio Metrics')
-        st.write(f'Expected Annual Return: {expected_return:.2%}')
-        st.write(f'Annual Volatility: {annual_volatility:.2%}')
-        st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
+        st.write(f'<b><font color="white">Expected Annual Return:</font></b> <font color="white">{expected_return:.2%}</font>', unsafe_allow_html=True)
+        st.write(f'<b><font color="white">Annual Volatility:</font></b> <font color="white">{annual_volatility:.2%}</font>', unsafe_allow_html=True)
+        st.write(f'<b><font color="white">Sharpe Ratio:</font></b> <font color="white">{sharpe_ratio:.2f}</font>', unsafe_allow_html=True)
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
