@@ -41,8 +41,10 @@ option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Port
 
 # Function to visualize returns with arrows
 def visualize_returns(returns):
-    arrows = ['↑' if r >= 0 else '↓' for r in returns]
-    colors = ['green' if r >= 0 else 'red' for r in returns]
+    returns_with_nan = returns.copy()
+    returns_with_nan[np.isnan(returns)] = "NaN%"
+    arrows = ['↑' if r >= 0 else '↓' for r in returns_with_nan]
+    colors = ['green' if r == 'NaN%' or r >= 0 else 'red' for r in returns_with_nan]
     return arrows, colors
 
 # Stock Analysis
@@ -63,6 +65,7 @@ if option == "Stock Analysis":
     start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
     end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
+    st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
@@ -75,7 +78,7 @@ if option == "Stock Analysis":
         arrows, colors = visualize_returns(daily_returns)
         tickerDf['Daily Returns'] = daily_returns.map('{:.2%}'.format)
         tickerDf['Directional Indicator'] = arrows
-        st.dataframe(tickerDf[['Daily Returns', 'Directional Indicator']].style.apply(lambda x: ['color: green' if v == '↑' else 'color: red' for v in x]))
+        st.dataframe(tickerDf[['Daily Returns', 'Directional Indicator']].style.apply(lambda x: ['color: white' if v == 'NaN%' else f'color: {"green" if v == "↑" else "red"}' for v in x]))
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
@@ -83,7 +86,7 @@ if option == "Stock Analysis":
         cumulative_returns_with_arrows, cumulative_returns_colors = visualize_returns(cumulative_returns)
         tickerDf['Cumulative Returns'] = cumulative_returns.map('{:.2%}'.format)
         tickerDf['Directional Indicator (Cumulative)'] = cumulative_returns_with_arrows
-        st.dataframe(tickerDf[['Cumulative Returns', 'Directional Indicator (Cumulative)']].style.apply(lambda x: ['color: green' if v == '↑' else 'color: red' for v in x]))
+        st.dataframe(tickerDf[['Cumulative Returns', 'Directional Indicator (Cumulative)']].style.apply(lambda x: ['color: white' if v == 'NaN%' else f'color: {"green" if v == "↑" else "red"}' for v in x]))
 
         # Bollinger bands
         st.header('Bollinger Bands')
@@ -129,6 +132,7 @@ elif option == "Stock Price Prediction":
     start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
     end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
+    st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
