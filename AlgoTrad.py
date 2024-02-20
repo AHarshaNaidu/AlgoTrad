@@ -14,6 +14,7 @@ import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
+from pypfopt import objective_functions
 
 # Set custom theme colors
 PRIMARY_COLOR = "#E63946"  # Red
@@ -28,26 +29,24 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# About page content
-about_content = """
-# Algorithmic Trading Strategies
+# App title and description
+st.title('Algorithmic Trading Strategies')
+st.markdown('---')
+st.markdown('Scale +91 Hackathon | FFI 2024')
+st.markdown('Team GARUDA')
+st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))")
 
-**Scale +91 Hackathon | FFI 2024**
+# Sidebar
+selected_tab = st.sidebar.radio("Select Analysis", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization", "About"))
 
-**Team GARUDA**
-
-Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
-
-This app provides various algorithmic trading strategies including technical analysis, 
-stock price prediction using LSTM, and portfolio optimization.
-"""
-
-# Sidebar menu
-selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
-
-# About page
+# About Page
 if selected_tab == "About":
-    st.markdown(about_content)
+    st.subheader("About Algorithmic Trading Strategies")
+    st.write("""
+    Algorithmic Trading Strategies is a web application developed for the Scale +91 Hackathon organized by FFI 2024. 
+    This app is designed to provide various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
+    """)
+
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -189,15 +188,23 @@ elif selected_tab == "Portfolio Optimization":
 
     # Check if data is available for selected tickers
     if not data.empty:
-        # Calculate expected returns and sample covariance
-        mu = expected_returns.mean_historical_return(data)
-        Sigma = risk_models.sample_cov(data)
+        # Calculate expected returns using Exponential Moving Average
+        mu = expected_returns.ema_historical_return(data)
 
-        # Perform portfolio optimization
+        # Estimate covariance matrix using Ledoit-Wolf shrinkage
+        Sigma = risk_models.CovarianceShrinkage(data).ledoit_wolf()
+
+        # Define optimization constraints
         ef = EfficientFrontier(mu, Sigma)
-        raw_weights = ef.max_sharpe()
-        cleaned_weights = ef.clean_weights()
-        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
+        ef.add_constraint(lambda x: x >= 0)  # Long-only constraint
+        ef.add_constraint(lambda x: x <= 0.2)  # Maximum individual asset allocation constraint
+        ef.add_constraint(lambda x: sum(x) == 1)  # Budget constraint
+
+        # Perform portfolio optimization to maximize the Sharpe ratio
+        optimized_weights = ef.max_sharpe()
+
+        # Get performance metrics
+        expected_return, volatility, sharpe_ratio = ef.portfolio_performance()
 
         # Display selected ticker data
         st.subheader('Selected Ticker Data')
@@ -205,7 +212,7 @@ elif selected_tab == "Portfolio Optimization":
 
         # Display optimized portfolio weights
         st.subheader('Optimized Portfolio Weights')
-        st.write(pd.Series(cleaned_weights))
+        st.write(pd.Series(optimized_weights))
 
         # Plot Efficient Frontier
         st.subheader('Efficient Frontier')
@@ -214,18 +221,22 @@ elif selected_tab == "Portfolio Optimization":
             fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
 
         # Highlighting the optimized portfolio
-        fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
+        fig.add_trace(go.Scatter(x=[volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
 
         fig.update_layout(title='Efficient Frontier',
-                          xaxis_title='Annual Volatility',
-                          yaxis_title='Expected Annual Return')
+                          xaxis_title='Volatility',
+                          yaxis_title='Expected Return')
         st.plotly_chart(fig)
 
         # Display portfolio metrics
         st.subheader('Portfolio Metrics')
         st.write(f'Expected Annual Return: {expected_return:.2%}')
-        st.write(f'Annual Volatility: {annual_volatility:.2%}')
+        st.write(f'Volatility: {volatility:.2%}')
         st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
+
+        # Backtesting and validation
+        st.subheader("Backtesting and Validation")
+        # You can add your backtesting and validation code here.
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
