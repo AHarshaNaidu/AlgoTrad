@@ -24,53 +24,24 @@ TEXT_COLOR = "#264653"  # Dark blue
 st.set_page_config(
     page_title="Algorithmic Trading Strategies",
     page_icon=":chart_with_upwards_trend:",
-    layout="centered",
-    initial_sidebar_state="auto",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 # App title and description
-st.markdown(
-    """
-    <style>
-        .reportview-container .markdown-text-container {
-            font-family: 'Arial';
-            color: #264653;
-        }
-        .reportview-container {
-            background-color: #F1FAEE;
-        }
-        .sidebar .sidebar-content {
-            background-color: #E63946;
-            color: #FFFFFF;
-        }
-        .Widget>label {
-            color: #264653;
-        }
-        .sidebar .sidebar-content .sidebar-close {
-            color: #FFFFFF;
-        }
-        .css-17eq0hr-TooltipWrapper.e1g9ojyy0 {
-            background-color: #264653;
-            color: #FFFFFF;
-        }
-    </style>
-    <h1>Algorithmic Trading Strategies</h1>
-    <h3>Scale +91 Hackathon | FFI 2024</h3>
-    <h2>Team GARUDA</h2>
-    <h4>Akula Sri Harsha Sri Sai Hanuman (<a href="https://www.linkedin.com/in/AHarshaNaidu" style="color: #E63946;">LinkedIn</a>)</h4>
-    <p>This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.</p>
-    """,
-    unsafe_allow_html=True,
-)
+st.title('Algorithmic Trading Strategies')
+st.markdown('---')
+st.markdown('Scale +91 Hackathon | FFI 2024')
+st.markdown('Team GARUDA')
+st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))")
+st.write("This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.")
 
-st.write('---')
-
-# Sidebar to choose between different analysis options
-option = st.sidebar.radio("Select Analysis:", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
+st.sidebar.title("Select Analysis")
+option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
 # Stock Analysis
 if option == "Stock Analysis":
-    st.sidebar.subheader('Stock Analysis Parameters')
+    st.sidebar.header('Stock Analysis Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
     # Fetching ticker information
@@ -78,37 +49,37 @@ if option == "Stock Analysis":
     string_name = tickerData.info.get('longName', 'N/A')
     string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
 
-    st.subheader(f"**Stock Analysis: {tickerSymbol} - {string_name}**")
+    st.subheader(f"Stock Analysis: {tickerSymbol} - {string_name}")
     st.info(string_summary)
 
     # Ticker data
-    st.header('**Historical Stock Data**')
-    start_date = st.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.date_input("End Date", datetime.date(2021, 1, 31))
+    st.header('Historical Stock Data')
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
     st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Display Daily Returns
-        st.header('**Daily Returns**')
+        st.header('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
         st.write(daily_returns)
 
         # Display Cumulative Returns
-        st.header('**Cumulative Returns**')
+        st.header('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
         st.write(cumulative_returns)
 
         # Bollinger bands
-        st.header('**Bollinger Bands**')
+        st.header('Bollinger Bands')
         qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
         qf.add_bollinger_bands()
         fig = qf.iplot(asFigure=True)
         st.plotly_chart(fig)
 
         # Ichimoku Cloud
-        st.header('**Ichimoku Cloud**')
+        st.header('Ichimoku Cloud')
 
         # Calculate Ichimoku Cloud data
         indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
@@ -130,26 +101,26 @@ if option == "Stock Analysis":
 
 # Stock Price Prediction
 elif option == "Stock Price Prediction":
-    st.sidebar.subheader('Stock Prediction Parameters')
+    st.sidebar.header('Stock Prediction Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
     # Fetching ticker information
     tickerData = yf.Ticker(tickerSymbol)
     string_name = tickerData.info.get('longName', 'N/A')
 
-    st.subheader(f"**Stock Price Prediction: {tickerSymbol} - {string_name}**")
+    st.subheader(f"Stock Price Prediction: {tickerSymbol} - {string_name}")
 
     # Ticker data
-    st.header('**Historical Stock Data**')
-    start_date = st.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.date_input("End Date", datetime.date(2021, 1, 31))
+    st.header('Historical Stock Data')
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
     st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Stock Price Prediction using LSTM
-        st.header('**Stock Price Prediction using LSTM**')
+        st.header('Stock Price Prediction using LSTM')
 
         # Prepare the data for prediction
         data = tickerDf['Close'].values.reshape(-1, 1)
@@ -185,7 +156,7 @@ elif option == "Stock Price Prediction":
         predictions = scaler.inverse_transform(predictions)
 
         # Plot actual vs predicted prices
-        st.header('**Actual vs Predicted Prices**')
+        st.header('Actual vs Predicted Prices')
         prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
         st.write(prediction_df)
 
@@ -200,7 +171,7 @@ elif option == "Stock Price Prediction":
 
 # Portfolio Optimization
 elif option == "Portfolio Optimization":
-    st.sidebar.subheader('Portfolio Optimization Parameters')
+    st.sidebar.header('Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 
     # Fetching data for selected tickers
@@ -220,15 +191,15 @@ elif option == "Portfolio Optimization":
         expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
 
         # Display selected ticker data
-        st.subheader('**Selected Ticker Data**')
+        st.subheader('Selected Ticker Data')
         st.write(data)
 
         # Display optimized portfolio weights
-        st.subheader('**Optimized Portfolio Weights**')
+        st.subheader('Optimized Portfolio Weights')
         st.write(pd.Series(cleaned_weights))
 
         # Plot Efficient Frontier
-        st.subheader('**Efficient Frontier**')
+        st.subheader('Efficient Frontier')
         fig = go.Figure()
         for ticker in tickers:
             fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
@@ -242,7 +213,7 @@ elif option == "Portfolio Optimization":
         st.plotly_chart(fig)
 
         # Display portfolio metrics
-        st.subheader('**Portfolio Metrics**')
+        st.subheader('Portfolio Metrics')
         st.write(f'Expected Annual Return: {expected_return:.2%}')
         st.write(f'Annual Volatility: {annual_volatility:.2%}')
         st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
