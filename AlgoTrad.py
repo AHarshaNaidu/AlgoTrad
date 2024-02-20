@@ -63,11 +63,10 @@ if option == "Stock Analysis":
     start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
     end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
-    st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
-        # Display Daily Returns
+        # Display Returns Analysis
         st.header('Returns Analysis')
 
         # Daily Returns
@@ -130,7 +129,6 @@ elif option == "Stock Price Prediction":
     start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
     end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
-    st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
