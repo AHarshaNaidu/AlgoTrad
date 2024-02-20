@@ -76,6 +76,7 @@ if option == "Stock Analysis":
         qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
         qf.add_bollinger_bands()
         fig = qf.iplot(asFigure=True)
+        fig.update_layout(xaxis_title='Date', yaxis_title='Price')
         st.plotly_chart(fig)
 
         # Ichimoku Cloud
@@ -93,7 +94,7 @@ if option == "Stock Analysis":
                                         go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
                                         go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
                                         go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
-                                    layout=go.Layout(title='Ichimoku Cloud'))
+                                    layout=go.Layout(title='Ichimoku Cloud', xaxis_title='Date', yaxis_title='Price'))
         st.plotly_chart(fig_ichimoku)
 
     else:
@@ -163,7 +164,7 @@ elif option == "Stock Price Prediction":
         fig_pred = go.Figure()
         fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
         fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
-        fig_pred.update_layout(title='Actual vs Predicted Prices')
+        fig_pred.update_layout(title='Actual vs Predicted Prices', xaxis_title='Days', yaxis_title='Price')
         st.plotly_chart(fig_pred)
 
     else:
