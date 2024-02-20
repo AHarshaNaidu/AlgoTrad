@@ -28,22 +28,22 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# About page
-st.sidebar.title("About")
-st.sidebar.write(
-    """
-    **Algorithmic Trading Strategies**
+# About page content
+about_content = """
+# Algorithmic Trading Strategies
 
-    *Scale +91 Hackathon | FFI 2024*
+**Scale +91 Hackathon | FFI 2024**
 
-    **Team GARUDA**
+**Team GARUDA**
 
-    Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
+Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
 
-    This app provides various algorithmic trading strategies including technical analysis, 
-    stock price prediction using LSTM, and portfolio optimization.
-    """
-)
+This app provides various algorithmic trading strategies including technical analysis, 
+stock price prediction using LSTM, and portfolio optimization.
+"""
+
+# Display about page content
+st.markdown(about_content)
 
 # Sidebar menu
 selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
