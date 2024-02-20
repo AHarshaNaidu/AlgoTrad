@@ -42,14 +42,14 @@ This app provides various algorithmic trading strategies including technical ana
 stock price prediction using LSTM, and portfolio optimization.
 """
 
-# Display about page content
-st.markdown(about_content)
-
 # Sidebar menu
 selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
+# About page
+if selected_tab == "About":
+    st.markdown(about_content)
 # Stock Analysis
-if selected_tab == "Stock Analysis":
+elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
@@ -129,7 +129,7 @@ elif selected_tab == "Stock Price Prediction":
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Stock Price Prediction using LSTM
-        st.subheader('Stock Price Prediction using LSTM')
+        st.header('Stock Price Prediction using LSTM')
 
         # Prepare the data for prediction
         data = tickerDf['Close'].values.reshape(-1, 1)
