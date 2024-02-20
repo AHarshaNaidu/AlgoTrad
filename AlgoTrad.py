@@ -74,40 +74,13 @@ if option == "Stock Analysis":
         st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
         daily_returns_with_nan = visualize_returns(daily_returns)
-        tickerDf['Daily Returns'] = daily_returns_with_nan.map(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>', na_action='ignore', escape=False)
-        st.dataframe(tickerDf[['Daily Returns']])
+        tickerDf['Daily Returns'] = daily_returns_with_nan.apply(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>')
+        st.dataframe(tickerDf.style.applymap(lambda x: 'color: white; font-weight: bold'))
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
-        cumulative_returns_with_nan = visualize_returns(cumulative_returns)
-        tickerDf['Cumulative Returns'] = cumulative_returns_with_nan.map(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>', na_action='ignore', escape=False)
-        st.dataframe(tickerDf[['Cumulative Returns']])
-
-        # Bollinger bands
-        st.header('Bollinger Bands')
-        qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
-        qf.add_bollinger_bands()
-        fig = qf.iplot(asFigure=True)
-        st.plotly_chart(fig)
-
-        # Ichimoku Cloud
-        st.header('Ichimoku Cloud')
-
-        # Calculate Ichimoku Cloud data
-        indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
-        tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
-        tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
-        tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
-        tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
-
-        # Plot Ichimoku Cloud
-        fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
-                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
-                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
-                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
-                                    layout=go.Layout(title='Ichimoku Cloud'))
-        st.plotly_chart(fig_ichimoku)
+        st.write(cumulative_returns)
 
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
@@ -173,12 +146,6 @@ elif option == "Stock Price Prediction":
         prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
         st.write(prediction_df)
 
-        fig_pred = go.Figure()
-        fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
-        fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
-        fig_pred.update_layout(title='Actual vs Predicted Prices')
-        st.plotly_chart(fig_pred)
-
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
@@ -227,9 +194,9 @@ elif option == "Portfolio Optimization":
 
         # Display portfolio metrics
         st.subheader('Portfolio Metrics')
-        st.write(f'<b><font color="white">Expected Annual Return:</font></b> <font color="white">{expected_return:.2%}</font>', unsafe_allow_html=True)
-        st.write(f'<b><font color="white">Annual Volatility:</font></b> <font color="white">{annual_volatility:.2%}</font>', unsafe_allow_html=True)
-        st.write(f'<b><font color="white">Sharpe Ratio:</font></b> <font color="white">{sharpe_ratio:.2f}</font>', unsafe_allow_html=True)
+        st.write(f'Expected Annual Return: {expected_return:.2%}')
+        st.write(f'Annual Volatility: {annual_volatility:.2%}')
+        st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
