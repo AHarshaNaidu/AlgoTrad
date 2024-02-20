@@ -33,7 +33,7 @@ st.title('Algorithmic Trading Strategies')
 st.markdown('---')
 st.markdown('Scale +91 Hackathon | FFI 2024')
 st.markdown('Team GARUDA')
-st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([View Profile](https://www.linkedin.com/in/AHarshaNaidu))")
+st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([Click Hare To View Profile](https://www.linkedin.com/in/AHarshaNaidu))")
 st.write("This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.")
 
 st.sidebar.title("Select Analysis")
