@@ -42,9 +42,9 @@ option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Port
 # Function to visualize returns with arrows
 def visualize_returns(returns):
     returns_with_nan = returns.copy()
-    returns_with_nan[np.isnan(returns)] = "NaN%"
-    arrows = ['↑' if r >= 0 else '↓' for r in returns_with_nan]
-    colors = ['green' if r == 'NaN%' or r >= 0 else 'red' for r in returns_with_nan]
+    returns_with_nan[np.isnan(returns)] = np.nan
+    arrows = ['↑' if np.isnan(r) or r >= 0 else '↓' for r in returns_with_nan]
+    colors = ['green' if np.isnan(r) or r >= 0 else 'red' for r in returns_with_nan]
     return arrows, colors
 
 # Stock Analysis
