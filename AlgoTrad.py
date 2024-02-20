@@ -44,7 +44,7 @@ def visualize_returns(returns):
     returns_with_nan = returns.copy()
     returns_with_nan[np.isnan(returns)] = np.nan
     arrows = ['↑' if np.isnan(r) or r >= 0 else '↓' for r in returns_with_nan]
-    colors = ['green' if np.isnan(r) or r >= 0 else 'red' for r in returns_with_nan]
+    colors = ['white' if np.isnan(r) else 'green' if r >= 0 else 'red' for r in returns_with_nan]
     return arrows, colors
 
 # Stock Analysis
