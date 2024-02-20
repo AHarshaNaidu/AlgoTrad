@@ -68,16 +68,16 @@ if option == "Stock Analysis":
         st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
         daily_returns_with_undefined = daily_returns.copy()
-        daily_returns_with_undefined[np.isnan(daily_returns)] = 'undefined'
-        tickerDf['Daily Returns'] = daily_returns_with_undefined.map('{:.2%}'.format)
+        daily_returns_with_undefined[np.isnan(daily_returns)] = np.nan
+        tickerDf['Daily Returns'] = daily_returns_with_undefined.map(lambda x: '{:.2%}'.format(x) if not np.isnan(x) else 'undefined')
         st.dataframe(tickerDf[['Daily Returns']])
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
         cumulative_returns_with_undefined = cumulative_returns.copy()
-        cumulative_returns_with_undefined[np.isnan(cumulative_returns)] = 'undefined'
-        tickerDf['Cumulative Returns'] = cumulative_returns_with_undefined.map('{:.2%}'.format)
+        cumulative_returns_with_undefined[np.isnan(cumulative_returns)] = np.nan
+        tickerDf['Cumulative Returns'] = cumulative_returns_with_undefined.map(lambda x: '{:.2%}'.format(x) if not np.isnan(x) else 'undefined')
         st.dataframe(tickerDf[['Cumulative Returns']])
 
         # Bollinger bands
