@@ -14,7 +14,6 @@ import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
-from pypfopt import exceptions
 
 # Set custom theme colors
 PRIMARY_COLOR = "#E63946"  # Red
@@ -29,32 +28,28 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# App title and description
-st.title('Algorithmic Trading Strategies')
-st.markdown('---')
-st.markdown('Scale +91 Hackathon | FFI 2024')
-st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))")
-st.write("This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.")
+# About page content
+about_content = """
+# Algorithmic Trading Strategies
 
-st.sidebar.title("Select Analysis")
-option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization", "About"))
+**Scale +91 Hackathon | FFI 2024**
 
-# About Page
-if option == "About":
-    st.header("About")
-    st.write("""
-    Algorithmic Trading Strategies
-    Scale +91 Hackathon | FFI 2024
-    
-    Team GARUDA
-    
-    Developed by: Akula Sri Harsha Sri Sai Hanuman (LinkedIn)
-    
-    This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
-    """)
+**Team GARUDA**
 
+Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
+
+This app provides various algorithmic trading strategies including technical analysis, 
+stock price prediction using LSTM, and portfolio optimization.
+"""
+
+# Sidebar menu
+selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
+
+# About page
+if selected_tab == "About":
+    st.markdown(about_content)
 # Stock Analysis
-elif option == "Stock Analysis":
+elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
@@ -114,7 +109,7 @@ elif option == "Stock Analysis":
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
 # Stock Price Prediction
-elif option == "Stock Price Prediction":
+elif selected_tab == "Stock Price Prediction":
     st.sidebar.header('Stock Prediction Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
@@ -184,7 +179,7 @@ elif option == "Stock Price Prediction":
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
 # Portfolio Optimization
-elif option == "Portfolio Optimization":
+elif selected_tab == "Portfolio Optimization":
     st.sidebar.header('Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 
@@ -194,32 +189,43 @@ elif option == "Portfolio Optimization":
 
     # Check if data is available for selected tickers
     if not data.empty:
-        try:
-            # Calculate expected returns and sample covariance
-            mu = expected_returns.mean_historical_return(data)
-            Sigma = risk_models.sample_cov(data)
+        # Calculate expected returns and sample covariance
+        mu = expected_returns.mean_historical_return(data)
+        Sigma = risk_models.sample_cov(data)
 
-            # Perform portfolio optimization
-            ef = EfficientFrontier(mu, Sigma)
-            optimized_weights = ef.max_sharpe()
+        # Perform portfolio optimization
+        ef = EfficientFrontier(mu, Sigma)
+        raw_weights = ef.max_sharpe()
+        cleaned_weights = ef.clean_weights()
+        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
 
-            # Get performance metrics
-            expected_return, volatility, sharpe_ratio = ef.portfolio_performance()
+        # Display selected ticker data
+        st.subheader('Selected Ticker Data')
+        st.write(data)
 
-            # Display portfolio metrics
-            st.subheader('Portfolio Metrics')
-            st.write(f'Expected Annual Return: {expected_return:.2%}')
-            st.write(f'Volatility: {volatility:.2%}')
-            st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
+        # Display optimized portfolio weights
+        st.subheader('Optimized Portfolio Weights')
+        st.write(pd.Series(cleaned_weights))
 
-            # Backtesting and validation
-            st.subheader("Backtesting and Validation")
-            # You can add your backtesting and validation code here.
+        # Plot Efficient Frontier
+        st.subheader('Efficient Frontier')
+        fig = go.Figure()
+        for ticker in tickers:
+            fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
 
-        except exceptions.OptimizationError as e:
-            # Print detailed error message
-            st.error("Error occurred during optimization:")
-            st.error(str(e))
+        # Highlighting the optimized portfolio
+        fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
+
+        fig.update_layout(title='Efficient Frontier',
+                          xaxis_title='Annual Volatility',
+                          yaxis_title='Expected Annual Return')
+        st.plotly_chart(fig)
+
+        # Display portfolio metrics
+        st.subheader('Portfolio Metrics')
+        st.write(f'Expected Annual Return: {expected_return:.2%}')
+        st.write(f'Annual Volatility: {annual_volatility:.2%}')
+        st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
