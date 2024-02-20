@@ -39,12 +39,6 @@ st.write("This app provides various algorithmic trading strategies including tec
 st.sidebar.title("Select Analysis")
 option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
-# Function to visualize returns with arrows
-def visualize_returns(returns):
-    returns_with_nan = returns.copy()
-    returns_with_nan[np.isnan(returns)] = np.nan
-    return returns_with_nan
-
 # Stock Analysis
 if option == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -67,20 +61,45 @@ if option == "Stock Analysis":
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
-        # Display Returns Analysis
+        # Display Daily Returns
         st.header('Returns Analysis')
 
         # Daily Returns
         st.subheader('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
-        daily_returns_with_nan = visualize_returns(daily_returns)
-        tickerDf['Daily Returns'] = daily_returns_with_nan.apply(lambda x: f'<b><font color="white">{x:.2%}</font></b>' if not np.isnan(x) else '<b><font color="white">undefined</font></b>')
-        st.dataframe(tickerDf.style.applymap(lambda x: 'color: white; font-weight: bold'))
+        daily_returns_with_color = daily_returns.apply(lambda x: 'color: green' if x >= 0 else 'color: red')
+        st.dataframe(daily_returns.style.applymap(lambda x: daily_returns_with_color))
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
         cumulative_returns = daily_returns.cumsum()
-        st.write(cumulative_returns)
+        cumulative_returns_with_color = cumulative_returns.apply(lambda x: 'color: green' if x >= 0 else 'color: red')
+        st.dataframe(cumulative_returns.style.applymap(lambda x: cumulative_returns_with_color))
+
+        # Bollinger bands
+        st.header('Bollinger Bands')
+        qf = cf.QuantFig(tickerDf, title='Bollinger Bands', legend='top', name='GS')
+        qf.add_bollinger_bands()
+        fig = qf.iplot(asFigure=True)
+        st.plotly_chart(fig)
+
+        # Ichimoku Cloud
+        st.header('Ichimoku Cloud')
+
+        # Calculate Ichimoku Cloud data
+        indicator_ichimoku = IchimokuIndicator(high=tickerDf['High'], low=tickerDf['Low'])
+        tickerDf['ichimoku_a'] = indicator_ichimoku.ichimoku_a()
+        tickerDf['ichimoku_b'] = indicator_ichimoku.ichimoku_b()
+        tickerDf['ichimoku_base_line'] = indicator_ichimoku.ichimoku_base_line()
+        tickerDf['ichimoku_conversion_line'] = indicator_ichimoku.ichimoku_conversion_line()
+
+        # Plot Ichimoku Cloud
+        fig_ichimoku = go.Figure(data=[go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
+                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
+                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
+                                        go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
+                                    layout=go.Layout(title='Ichimoku Cloud'))
+        st.plotly_chart(fig_ichimoku)
 
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
@@ -145,6 +164,12 @@ elif option == "Stock Price Prediction":
         st.header('Actual vs Predicted Prices')
         prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
         st.write(prediction_df)
+
+        fig_pred = go.Figure()
+        fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
+        fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
+        fig_pred.update_layout(title='Actual vs Predicted Prices')
+        st.plotly_chart(fig_pred)
 
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
