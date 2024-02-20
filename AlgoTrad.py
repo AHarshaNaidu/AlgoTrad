@@ -1,24 +1,16 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import cufflinks as cf
-import datetime
-from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
+from datetime import datetime
+from ta.trend import IchimokuIndicator
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
-import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
-
-# Set custom theme colors
-PRIMARY_COLOR = "#E63946"  # Red
-BACKGROUND_COLOR = "#F1FAEE"  # Light green
-TEXT_COLOR = "#264653"  # Dark blue
 
 # Set page configuration
 st.set_page_config(
@@ -26,6 +18,27 @@ st.set_page_config(
     page_icon=":chart_with_upwards_trend:",
     layout="wide",
     initial_sidebar_state="expanded",
+)
+
+# Custom CSS for styling
+st.markdown(
+    """
+    <style>
+        .main {
+            background-color: #f0f3f6;
+        }
+        .sidebar .sidebar-content {
+            background-color: #ffffff;
+        }
+        .sidebar .sidebar-content .block-container {
+            color: #264653;
+        }
+        .css-1v3fvcr {
+            color: #e63946;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
 # App title and description
@@ -54,8 +67,8 @@ if option == "Stock Analysis":
 
     # Ticker data
     st.header('Historical Stock Data')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
+    start_date = st.sidebar.date_input("Start Date", datetime(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
     st.write(tickerDf)
 
@@ -112,8 +125,8 @@ elif option == "Stock Price Prediction":
 
     # Ticker data
     st.header('Historical Stock Data')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
+    start_date = st.sidebar.date_input("Start Date", datetime(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime(2021, 1, 31))
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
     st.write(tickerDf)
 
