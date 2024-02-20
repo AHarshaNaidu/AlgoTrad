@@ -75,7 +75,7 @@ if option == "Stock Analysis":
         arrows, colors = visualize_returns(daily_returns)
         tickerDf['Daily Returns'] = daily_returns.map('{:.2%}'.format)
         tickerDf['Directional Indicator'] = arrows
-        st.dataframe(tickerDf[['Daily Returns', 'Directional Indicator']].style.applymap(lambda x: f'color: {"red" if x.startswith("-") else "green"}'))
+        st.dataframe(tickerDf[['Daily Returns', 'Directional Indicator']].style.apply(lambda x: ['color: green' if v == '↑' else 'color: red' for v in x]))
 
         # Cumulative Returns
         st.subheader('Cumulative Returns')
@@ -83,7 +83,7 @@ if option == "Stock Analysis":
         cumulative_returns_with_arrows, cumulative_returns_colors = visualize_returns(cumulative_returns)
         tickerDf['Cumulative Returns'] = cumulative_returns.map('{:.2%}'.format)
         tickerDf['Directional Indicator (Cumulative)'] = cumulative_returns_with_arrows
-        st.dataframe(tickerDf[['Cumulative Returns', 'Directional Indicator (Cumulative)']].style.applymap(lambda x: f'color: {"red" if x.startswith("-") else "green"}'))
+        st.dataframe(tickerDf[['Cumulative Returns', 'Directional Indicator (Cumulative)']].style.apply(lambda x: ['color: green' if v == '↑' else 'color: red' for v in x]))
 
         # Bollinger bands
         st.header('Bollinger Bands')
