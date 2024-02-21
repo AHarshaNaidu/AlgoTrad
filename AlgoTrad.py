@@ -14,6 +14,8 @@ import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
+from pypfopt import discrete_allocation
+import matplotlib.pyplot as plt
 
 # Set custom theme colors
 PRIMARY_COLOR = "#E63946"  # Red
@@ -48,6 +50,7 @@ selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
+
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -178,7 +181,7 @@ elif selected_tab == "Stock Price Prediction":
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
-# Long-Term Portfolio Optimization
+# Long-Term Portfolio Optimization with Backtest
 elif selected_tab == "Long-Term Portfolio Optimization":
     st.sidebar.header('Long-Term Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
@@ -227,10 +230,30 @@ elif selected_tab == "Long-Term Portfolio Optimization":
         st.write(f'Annual Volatility: {annual_volatility:.2%}')
         st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
 
+        # Backtesting
+        st.subheader('Long-Term Portfolio Backtest')
+        initial_investment = st.number_input('Initial Investment ($)', value=10000)
+        allocation = discrete_allocation.DiscreteAllocation(cleaned_weights, data.iloc[-1], initial_investment)
+        portfolio, leftover_cash = allocation.lp_portfolio()
+        st.write(f'Leftover Cash: ${leftover_cash:.2f}')
+        st.write('Portfolio Composition:')
+        st.write(portfolio)
+
+        # Plotting portfolio performance
+        port_val = pd.Series(index=data.index, data=0.0)
+        for ticker, shares in portfolio.items():
+            port_val += data[ticker] * shares
+        port_val = port_val[port_val != 0]
+        port_val /= initial_investment
+        fig_port = go.Figure()
+        fig_port.add_trace(go.Scatter(x=port_val.index, y=port_val, mode='lines', name='Portfolio Value'))
+        fig_port.update_layout(title='Long-Term Portfolio Backtest Performance', xaxis_title='Date', yaxis_title='Portfolio Value')
+        st.plotly_chart(fig_port)
+
     else:
         st.error("No data available for selected tickers. Please check your input.")
 
-# Short-Term Portfolio Optimization
+# Short-Term Portfolio Optimization with Backtest
 elif selected_tab == "Short-Term Portfolio Optimization":
     st.sidebar.header('Short-Term Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
@@ -282,76 +305,25 @@ elif selected_tab == "Short-Term Portfolio Optimization":
         st.write(f'Annual Volatility: {annual_volatility:.2%}')
         st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
 
-    else:
-        st.error("No data available for selected tickers. Please check your input.")
-
-# Backtesting for Long-Term Portfolio Optimization
-elif selected_tab == "Long-Term Portfolio Optimization Backtest":
-    st.sidebar.header('Long-Term Portfolio Optimization Backtest Parameters')
-    tickers = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2018, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 12, 31))
-    initial_investment = st.sidebar.number_input("Initial Investment ($)", value=10000)
-
-    # Fetching data for selected tickers
-    tickers = [x.strip() for x in tickers.split(',')]
-    data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
-
-    # Check if data is available for selected tickers
-    if not data.empty:
-        # Calculate expected returns and sample covariance
-        mu = expected_returns.mean_historical_return(data)
-        Sigma = risk_models.sample_cov(data)
-
-        # Perform portfolio optimization
-        ef = EfficientFrontier(mu, Sigma)
-        raw_weights = ef.max_sharpe()
-        cleaned_weights = ef.clean_weights()
-        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance()
-
         # Backtesting
-        st.subheader('Backtesting Results')
-        port_returns = (data.pct_change() * cleaned_weights).sum(axis=1)
-        port_cumulative_returns = (port_returns + 1).cumprod()
-        port_value = initial_investment * port_cumulative_returns
-        st.line_chart(port_value)
+        st.subheader('Short-Term Portfolio Backtest')
+        initial_investment = st.number_input('Initial Investment ($)', value=10000)
+        allocation = discrete_allocation.DiscreteAllocation(cleaned_weights, data.iloc[-1], initial_investment)
+        portfolio, leftover_cash = allocation.lp_portfolio()
+        st.write(f'Leftover Cash: ${leftover_cash:.2f}')
+        st.write('Portfolio Composition:')
+        st.write(portfolio)
 
-    else:
-        st.error("No data available for selected tickers. Please check your input.")
-
-# Backtesting for Short-Term Portfolio Optimization
-elif selected_tab == "Short-Term Portfolio Optimization Backtest":
-    st.sidebar.header('Short-Term Portfolio Optimization Backtest Parameters')
-    tickers = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2018, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 12, 31))
-    initial_investment = st.sidebar.number_input("Initial Investment ($)", value=10000)
-
-    # Fetching data for selected tickers
-    tickers = [x.strip() for x in tickers.split(',')]
-    data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
-
-    # Check if data is available for selected tickers
-    if not data.empty:
-        # Calculate expected returns based on short-term momentum
-        mu = expected_returns.ema_historical_return(data)
-
-        # Calculate sample covariance based on short-term data
-        short_term_data = data.iloc[-30:]  # Using the last 30 days for short-term optimization
-        Sigma = risk_models.sample_cov(short_term_data)
-
-        # Perform short-term portfolio optimization
-        ef = EfficientFrontier(mu, Sigma)
-        raw_weights = ef.max_sharpe()
-        cleaned_weights = ef.clean_weights()
-        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance()
-
-        # Backtesting
-        st.subheader('Backtesting Results')
-        port_returns = (data.pct_change() * cleaned_weights).sum(axis=1)
-        port_cumulative_returns = (port_returns + 1).cumprod()
-        port_value = initial_investment * port_cumulative_returns
-        st.line_chart(port_value)
+        # Plotting portfolio performance
+        port_val = pd.Series(index=data.index, data=0.0)
+        for ticker, shares in portfolio.items():
+            port_val += data[ticker] * shares
+        port_val = port_val[port_val != 0]
+        port_val /= initial_investment
+        fig_port = go.Figure()
+        fig_port.add_trace(go.Scatter(x=port_val.index, y=port_val, mode='lines', name='Portfolio Value'))
+        fig_port.update_layout(title='Short-Term Portfolio Backtest Performance', xaxis_title='Date', yaxis_title='Portfolio Value')
+        st.plotly_chart(fig_port)
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
