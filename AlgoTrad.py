@@ -44,7 +44,7 @@ stock price prediction using LSTM, and portfolio optimization.
 """
 
 # Sidebar menu
-selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
+selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization", "Advanced AI Techniques"))
 
 # About page
 if selected_tab == "About":
@@ -294,3 +294,75 @@ elif selected_tab == "Short-Term Portfolio Optimization":
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
+
+# Advanced AI Techniques
+elif selected_tab == "Advanced AI Techniques":
+    st.subheader("Advanced AI Techniques in Algorithmic Trading")
+    st.write("""
+    Explore advanced AI techniques such as reinforcement learning or deep reinforcement learning,
+    which have been increasingly applied in algorithmic trading to develop more sophisticated trading strategies.
+    """)
+
+    # Reinforcement Learning for Algorithmic Trading
+    st.header("Reinforcement Learning for Algorithmic Trading")
+
+    # Import necessary libraries
+    import gym
+    from stable_baselines3 import A2C  # You can choose other RL algorithms provided by Stable Baselines
+    from stable_baselines3.common.vec_env import DummyVecEnv
+
+    # Define a custom Gym environment for algorithmic trading
+    class TradingEnv(gym.Env):
+        def __init__(self, data):
+            super(TradingEnv, self).__init__()
+            self.data = data
+            self.current_step = 0
+            self.max_steps = len(data)
+
+            # Define observation space and action space
+            self.observation_space = gym.spaces.Box(low=0, high=1, shape=(len(data.columns),))
+            self.action_space = gym.spaces.Discrete(3)  # Example: Buy, Sell, Hold
+
+        def reset(self):
+            self.current_step = 0
+            return self.data.iloc[self.current_step, :]
+
+        def step(self, action):
+            # Implement step function for trading actions
+            reward = 0  # Placeholder for reward calculation
+            done = False  # Placeholder for termination condition
+            info = {}  # Placeholder for additional information
+            self.current_step += 1
+
+            if self.current_step == self.max_steps:
+                done = True
+
+            return self.data.iloc[self.current_step, :], reward, done, info
+
+    # Load sample data (replace this with your own data)
+    sample_data = pd.DataFrame(np.random.randn(100, 4), columns=['Open', 'High', 'Low', 'Close'])
+
+    # Create a Gym environment
+    env = TradingEnv(sample_data)
+    env = DummyVecEnv([lambda: env])
+
+    # Train a reinforcement learning agent using A2C algorithm
+    model = A2C("MlpPolicy", env, verbose=1)
+    model.learn(total_timesteps=10000)
+
+    # Evaluate the trained agent
+    episode_rewards = []
+
+    for episode in range(10):
+        obs = env.reset()
+        done = False
+        episode_reward = 0.0
+
+        while not done:
+            action, _states = model.predict(obs)
+            obs, reward, done, info = env.step(action)
+            episode_reward += reward
+
+        episode_rewards.append(episode_reward)
+
+    st.write("Average episode reward:", np.mean(episode_rewards))
