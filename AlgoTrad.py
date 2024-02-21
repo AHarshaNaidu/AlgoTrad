@@ -48,10 +48,11 @@ selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
+
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
-    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
+    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL', help="Enter the ticker symbol of the stock you want to analyze.")
 
     # Fetching ticker information
     tickerData = yf.Ticker(tickerSymbol)
@@ -111,7 +112,7 @@ elif selected_tab == "Stock Analysis":
 # Stock Price Prediction
 elif selected_tab == "Stock Price Prediction":
     st.sidebar.header('Stock Prediction Parameters')
-    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
+    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL', help="Enter the ticker symbol of the stock you want to predict.")
 
     # Fetching ticker information
     tickerData = yf.Ticker(tickerSymbol)
@@ -181,7 +182,7 @@ elif selected_tab == "Stock Price Prediction":
 # Long-Term Portfolio Optimization
 elif selected_tab == "Long-Term Portfolio Optimization":
     st.sidebar.header('Long-Term Portfolio Optimization Parameters')
-    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL', help="Enter the ticker symbols of the stocks you want to include in the portfolio (comma-separated).")
 
     # Fetching data for selected tickers
     tickers = [x.strip() for x in tickerSymbols.split(',')]
@@ -233,7 +234,7 @@ elif selected_tab == "Long-Term Portfolio Optimization":
 # Short-Term Portfolio Optimization
 elif selected_tab == "Short-Term Portfolio Optimization":
     st.sidebar.header('Short-Term Portfolio Optimization Parameters')
-    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL', help="Enter the ticker symbols of the stocks you want to include in the portfolio (comma-separated).")
 
     # Fetching data for selected tickers
     tickers = [x.strip() for x in tickerSymbols.split(',')]
