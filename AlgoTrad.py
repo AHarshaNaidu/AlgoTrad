@@ -284,3 +284,74 @@ elif selected_tab == "Short-Term Portfolio Optimization":
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
+
+# Backtesting for Long-Term Portfolio Optimization
+elif selected_tab == "Long-Term Portfolio Optimization Backtest":
+    st.sidebar.header('Long-Term Portfolio Optimization Backtest Parameters')
+    tickers = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2018, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 12, 31))
+    initial_investment = st.sidebar.number_input("Initial Investment ($)", value=10000)
+
+    # Fetching data for selected tickers
+    tickers = [x.strip() for x in tickers.split(',')]
+    data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+
+    # Check if data is available for selected tickers
+    if not data.empty:
+        # Calculate expected returns and sample covariance
+        mu = expected_returns.mean_historical_return(data)
+        Sigma = risk_models.sample_cov(data)
+
+        # Perform portfolio optimization
+        ef = EfficientFrontier(mu, Sigma)
+        raw_weights = ef.max_sharpe()
+        cleaned_weights = ef.clean_weights()
+        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance()
+
+        # Backtesting
+        st.subheader('Backtesting Results')
+        port_returns = (data.pct_change() * cleaned_weights).sum(axis=1)
+        port_cumulative_returns = (port_returns + 1).cumprod()
+        port_value = initial_investment * port_cumulative_returns
+        st.line_chart(port_value)
+
+    else:
+        st.error("No data available for selected tickers. Please check your input.")
+
+# Backtesting for Short-Term Portfolio Optimization
+elif selected_tab == "Short-Term Portfolio Optimization Backtest":
+    st.sidebar.header('Short-Term Portfolio Optimization Backtest Parameters')
+    tickers = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2018, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 12, 31))
+    initial_investment = st.sidebar.number_input("Initial Investment ($)", value=10000)
+
+    # Fetching data for selected tickers
+    tickers = [x.strip() for x in tickers.split(',')]
+    data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+
+    # Check if data is available for selected tickers
+    if not data.empty:
+        # Calculate expected returns based on short-term momentum
+        mu = expected_returns.ema_historical_return(data)
+
+        # Calculate sample covariance based on short-term data
+        short_term_data = data.iloc[-30:]  # Using the last 30 days for short-term optimization
+        Sigma = risk_models.sample_cov(short_term_data)
+
+        # Perform short-term portfolio optimization
+        ef = EfficientFrontier(mu, Sigma)
+        raw_weights = ef.max_sharpe()
+        cleaned_weights = ef.clean_weights()
+        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance()
+
+        # Backtesting
+        st.subheader('Backtesting Results')
+        port_returns = (data.pct_change() * cleaned_weights).sum(axis=1)
+        port_cumulative_returns = (port_returns + 1).cumprod()
+        port_value = initial_investment * port_cumulative_returns
+        st.line_chart(port_value)
+
+    else:
+        st.error("No data available for selected tickers. Please check your input.")
