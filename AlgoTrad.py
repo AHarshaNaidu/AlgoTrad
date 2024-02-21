@@ -1,6 +1,9 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import cufflinks as cf
 import datetime
 from ta.trend import IchimokuIndicator
@@ -10,10 +13,6 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
-import gym
-import stable_baselines3
-from stable_baselines3 import A2C
-from stable_baselines3.common.vec_env import DummyVecEnv
 import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
@@ -33,6 +32,48 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Function to fetch financial news articles
+def fetch_news(ticker):
+    url = f"https://finance.yahoo.com/quote/{ticker}/news"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    articles = soup.find_all('h3', class_='Mb(5px)')
+    news_headlines = [article.text for article in articles]
+    return news_headlines
+
+# Function to perform sentiment analysis
+def analyze_sentiment(text):
+    analyzer = SentimentIntensityAnalyzer()
+    sentiment_scores = analyzer.polarity_scores(text)
+    return sentiment_scores
+
+# Streamlit app
+st.title("Real-Time Sentiment Analysis of Financial News")
+
+# Sidebar for selecting stock ticker
+ticker_symbol = st.sidebar.text_input("Enter Stock Ticker Symbol", value='AAPL', max_chars=5)
+
+# Fetching financial news for the selected stock ticker
+st.subheader(f"Latest News for {ticker_symbol}")
+news_articles = fetch_news(ticker_symbol)
+for article in news_articles:
+    st.write(article)
+
+# Perform sentiment analysis for each news article
+sentiment_results = []
+for article in news_articles:
+    sentiment_scores = analyze_sentiment(article)
+    sentiment_results.append(sentiment_scores)
+
+# Display sentiment analysis results
+st.subheader("Sentiment Analysis Results")
+df_sentiment = pd.DataFrame(sentiment_results)
+st.write(df_sentiment)
+
+# Visualize sentiment scores
+st.subheader("Visualization of Sentiment Scores")
+st.bar_chart(df_sentiment)
+
 # About page content
 about_content = """
 # Algorithmic Trading Strategies
@@ -48,11 +89,12 @@ stock price prediction using LSTM, and portfolio optimization.
 """
 
 # Sidebar menu
-selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization", "Advanced AI Techniques"))
+selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
 
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
+
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -298,75 +340,3 @@ elif selected_tab == "Short-Term Portfolio Optimization":
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
-
-# Advanced AI Techniques
-elif selected_tab == "Advanced AI Techniques":
-    st.subheader("Advanced AI Techniques in Algorithmic Trading")
-    st.write("""
-    Explore advanced AI techniques such as reinforcement learning or deep reinforcement learning,
-    which have been increasingly applied in algorithmic trading to develop more sophisticated trading strategies.
-    """)
-
-    # Reinforcement Learning for Algorithmic Trading
-    st.header("Reinforcement Learning for Algorithmic Trading")
-
-    # Import necessary libraries
-    import gym
-    from stable_baselines3 import A2C  # You can choose other RL algorithms provided by Stable Baselines
-    from stable_baselines3.common.vec_env import DummyVecEnv
-
-    # Define a custom Gym environment for algorithmic trading
-    class TradingEnv(gym.Env):
-        def __init__(self, data):
-            super(TradingEnv, self).__init__()
-            self.data = data
-            self.current_step = 0
-            self.max_steps = len(data)
-
-            # Define observation space and action space
-            self.observation_space = gym.spaces.Box(low=0, high=1, shape=(len(data.columns),))
-            self.action_space = gym.spaces.Discrete(3)  # Example: Buy, Sell, Hold
-
-        def reset(self):
-            self.current_step = 0
-            return self.data.iloc[self.current_step, :]
-
-        def step(self, action):
-            # Implement step function for trading actions
-            reward = 0  # Placeholder for reward calculation
-            done = False  # Placeholder for termination condition
-            info = {}  # Placeholder for additional information
-            self.current_step += 1
-
-            if self.current_step == self.max_steps:
-                done = True
-
-            return self.data.iloc[self.current_step, :], reward, done, info
-
-    # Load sample data (replace this with your own data)
-    sample_data = pd.DataFrame(np.random.randn(100, 4), columns=['Open', 'High', 'Low', 'Close'])
-
-    # Create a Gym environment
-    env = TradingEnv(sample_data)
-    env = DummyVecEnv([lambda: env])
-
-    # Train a reinforcement learning agent using A2C algorithm
-    model = A2C("MlpPolicy", env, verbose=1)
-    model.learn(total_timesteps=10000)
-
-    # Evaluate the trained agent
-    episode_rewards = []
-
-    for episode in range(10):
-        obs = env.reset()
-        done = False
-        episode_reward = 0.0
-
-        while not done:
-            action, _states = model.predict(obs)
-            obs, reward, done, info = env.step(action)
-            episode_reward += reward
-
-        episode_rewards.append(episode_reward)
-
-    st.write("Average episode reward:", np.mean(episode_rewards))
