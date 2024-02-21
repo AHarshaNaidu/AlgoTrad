@@ -14,8 +14,6 @@ import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
-from pypfopt import discrete_allocation
-import matplotlib.pyplot as plt
 
 # Set custom theme colors
 PRIMARY_COLOR = "#E63946"  # Red
@@ -50,7 +48,6 @@ selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
-
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -181,7 +178,7 @@ elif selected_tab == "Stock Price Prediction":
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
-# Long-Term Portfolio Optimization with Backtest
+# Long-Term Portfolio Optimization
 elif selected_tab == "Long-Term Portfolio Optimization":
     st.sidebar.header('Long-Term Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
@@ -230,30 +227,10 @@ elif selected_tab == "Long-Term Portfolio Optimization":
         st.write(f'Annual Volatility: {annual_volatility:.2%}')
         st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
 
-        # Backtesting
-        st.subheader('Long-Term Portfolio Backtest')
-        initial_investment = st.number_input('Initial Investment ($)', value=10000)
-        allocation = discrete_allocation.DiscreteAllocation(cleaned_weights, data.iloc[-1], initial_investment)
-        portfolio, leftover_cash = allocation.lp_portfolio()
-        st.write(f'Leftover Cash: ${leftover_cash:.2f}')
-        st.write('Portfolio Composition:')
-        st.write(portfolio)
-
-        # Plotting portfolio performance
-        port_val = pd.Series(index=data.index, data=0.0)
-        for ticker, shares in portfolio.items():
-            port_val += data[ticker] * shares
-        port_val = port_val[port_val != 0]
-        port_val /= initial_investment
-        fig_port = go.Figure()
-        fig_port.add_trace(go.Scatter(x=port_val.index, y=port_val, mode='lines', name='Portfolio Value'))
-        fig_port.update_layout(title='Long-Term Portfolio Backtest Performance', xaxis_title='Date', yaxis_title='Portfolio Value')
-        st.plotly_chart(fig_port)
-
     else:
         st.error("No data available for selected tickers. Please check your input.")
 
-# Short-Term Portfolio Optimization with Backtest
+# Short-Term Portfolio Optimization
 elif selected_tab == "Short-Term Portfolio Optimization":
     st.sidebar.header('Short-Term Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
@@ -304,26 +281,6 @@ elif selected_tab == "Short-Term Portfolio Optimization":
         st.write(f'Expected Annual Return: {expected_return:.2%}')
         st.write(f'Annual Volatility: {annual_volatility:.2%}')
         st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
-
-        # Backtesting
-        st.subheader('Short-Term Portfolio Backtest')
-        initial_investment = st.number_input('Initial Investment ($)', value=10000)
-        allocation = discrete_allocation.DiscreteAllocation(cleaned_weights, data.iloc[-1], initial_investment)
-        portfolio, leftover_cash = allocation.lp_portfolio()
-        st.write(f'Leftover Cash: ${leftover_cash:.2f}')
-        st.write('Portfolio Composition:')
-        st.write(portfolio)
-
-        # Plotting portfolio performance
-        port_val = pd.Series(index=data.index, data=0.0)
-        for ticker, shares in portfolio.items():
-            port_val += data[ticker] * shares
-        port_val = port_val[port_val != 0]
-        port_val /= initial_investment
-        fig_port = go.Figure()
-        fig_port.add_trace(go.Scatter(x=port_val.index, y=port_val, mode='lines', name='Portfolio Value'))
-        fig_port.update_layout(title='Short-Term Portfolio Backtest Performance', xaxis_title='Date', yaxis_title='Portfolio Value')
-        st.plotly_chart(fig_port)
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
