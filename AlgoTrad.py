@@ -179,7 +179,7 @@ elif selected_tab == "Stock Price Prediction":
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
 # Long-Term Portfolio Optimization
-elif selected_tab == "Long-Term Portfolio  Optimization":
+elif selected_tab == "Long-Term Portfolio Optimization":
     st.sidebar.header('Long-Term Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 
