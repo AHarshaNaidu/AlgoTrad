@@ -3,10 +3,6 @@ import yfinance as yf
 import pandas as pd
 import datetime
 import plotly.graph_objs as go
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
 import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
@@ -186,7 +182,7 @@ elif selected_tab == "Portfolio Optimization":
         mu = expected_returns.mean_historical_return(data)
         Sigma = risk_models.sample_cov(data)
 
-        # Perform portfolio optimization
+        # Perform Mean-Variance Optimization (MVO)
         ef = EfficientFrontier(mu, Sigma)
         raw_weights = ef.max_sharpe()
         cleaned_weights = ef.clean_weights()
