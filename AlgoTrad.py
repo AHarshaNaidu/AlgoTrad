@@ -14,6 +14,7 @@ import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 # Set custom theme colors
 PRIMARY_COLOR = "#E63946"  # Red
@@ -48,11 +49,10 @@ selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
-
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
-    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL', help="Enter the ticker symbol of the stock you want to analyze.")
+    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
     # Fetching ticker information
     tickerData = yf.Ticker(tickerSymbol)
@@ -112,7 +112,7 @@ elif selected_tab == "Stock Analysis":
 # Stock Price Prediction
 elif selected_tab == "Stock Price Prediction":
     st.sidebar.header('Stock Prediction Parameters')
-    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL', help="Enter the ticker symbol of the stock you want to predict.")
+    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
     # Fetching ticker information
     tickerData = yf.Ticker(tickerSymbol)
@@ -165,6 +165,15 @@ elif selected_tab == "Stock Price Prediction":
         predictions = model.predict(X_test)
         predictions = scaler.inverse_transform(predictions)
 
+        # Calculate evaluation metrics
+        mse = mean_squared_error(y_test, predictions)
+        mae = mean_absolute_error(y_test, predictions)
+
+        # Display evaluation results
+        st.subheader('Model Evaluation')
+        st.write(f'Mean Squared Error (MSE): {mse:.2f}')
+        st.write(f'Mean Absolute Error (MAE): {mae:.2f}')
+
         # Plot actual vs predicted prices
         st.header('Actual vs Predicted Prices')
         prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
@@ -182,7 +191,7 @@ elif selected_tab == "Stock Price Prediction":
 # Long-Term Portfolio Optimization
 elif selected_tab == "Long-Term Portfolio Optimization":
     st.sidebar.header('Long-Term Portfolio Optimization Parameters')
-    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL', help="Enter the ticker symbols of the stocks you want to include in the portfolio (comma-separated).")
+    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 
     # Fetching data for selected tickers
     tickers = [x.strip() for x in tickerSymbols.split(',')]
@@ -234,7 +243,7 @@ elif selected_tab == "Long-Term Portfolio Optimization":
 # Short-Term Portfolio Optimization
 elif selected_tab == "Short-Term Portfolio Optimization":
     st.sidebar.header('Short-Term Portfolio Optimization Parameters')
-    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL', help="Enter the ticker symbols of the stocks you want to include in the portfolio (comma-separated).")
+    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 
     # Fetching data for selected tickers
     tickers = [x.strip() for x in tickerSymbols.split(',')]
