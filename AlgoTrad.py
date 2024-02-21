@@ -244,4 +244,3 @@ def plot_efficient_frontier(ef):
                       xaxis_title='Volatility',
                       yaxis_title='Expected Return')
     return fig
-        
