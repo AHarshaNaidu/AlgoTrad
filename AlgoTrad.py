@@ -184,7 +184,9 @@ def display_portfolio_optimization(ticker_symbols):
     try:
         # Fetching data for selected tickers
         tickers = [x.strip() for x in ticker_symbols.split(',')]
+        st.write("Fetching data for tickers:", tickers)  # Add this line for debugging
         data = yf.download(tickers)['Adj Close']
+        st.write("Fetched data shape:", data.shape)  # Add this line for debugging
 
         # Check if data is available for selected tickers
         if not data.empty:
@@ -227,20 +229,4 @@ def display_portfolio_optimization(ticker_symbols):
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
-
-# Helper function to plot Efficient Frontier
-def plot_efficient_frontier(ef):
-    fig = go.Figure()
-    for ticker in ef.tickers:
-        fig.add_trace(go.Scatter(x=np.sqrt(np.diag(ef.cov_matrix)), y=ef.expected_returns, mode='markers', name=ticker))
-
-    # Highlighting the optimized portfolio
-    weights = np.array(list(ef.weights.values()))
-    fig.add_trace(go.Scatter(x=np.sqrt(ef.portfolio_performance()[1]), y=ef.portfolio_performance()[0],
-                             mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
-    
-    fig.update_layout(title='Efficient Frontier',
-                      xaxis_title='Volatility',
-                      yaxis_title='Expected Return')
-    return fig
         
