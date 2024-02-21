@@ -11,8 +11,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
 import gym
-from stable-baselines3 import A2C
-from stable-baselines3.common.vec_env import DummyVecEnv
+import stable_baselines3
+from stable_baselines3 import A2C
+from stable_baselines3.common.vec_env import DummyVecEnv
 import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
