@@ -14,5 +14,6 @@ ta
 requests
 Python-IO
 pyportfolioopt==1.5.5
-gym
-stable-baselines3
+requests
+beautifulsoup4
+vaderSentiment
