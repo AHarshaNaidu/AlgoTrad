@@ -1,5 +1,3 @@
-no give me full code Integrate it in this :
-
 import streamlit as st
 import yfinance as yf
 import pandas as pd
