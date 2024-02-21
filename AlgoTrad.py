@@ -39,6 +39,78 @@ st.write("This app provides various algorithmic trading strategies including tec
 st.sidebar.title("Select Analysis")
 option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
 
+# Function to display portfolio optimization
+def display_portfolio_optimization(ticker_symbols):
+    st.header('Portfolio Optimization')
+
+    st.sidebar.header('Portfolio Optimization Parameters')
+
+    # Input validation and error handling
+    try:
+        # Fetching data for selected tickers
+        tickers = [x.strip() for x in ticker_symbols.split(',')]
+        st.write("Fetching data for tickers:", tickers)  # Add this line for debugging
+        data = yf.download(tickers)['Adj Close']
+        st.write("Fetched data shape:", data.shape)  # Add this line for debugging
+
+        # Check if data is available for selected tickers
+        if not data.empty:
+            # Calculate expected returns and sample covariance
+            mu = expected_returns.mean_historical_return(data)
+            Sigma = risk_models.sample_cov(data)
+
+            # Allow customization of optimization parameters
+            risk_tolerance = st.sidebar.slider("Risk Tolerance", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
+            target_return = st.sidebar.slider("Target Return", min_value=0.0, max_value=0.5, value=0.2, step=0.01)
+
+            # Perform portfolio optimization
+            ef = EfficientFrontier(mu, Sigma)
+            ef.add_constraint(lambda x: x >= 0)  # Ensure non-negative weights
+            ef.efficient_risk(target_return, market_neutral=True, risk_free_rate=0.02)  # Adjust risk-free rate if needed
+            weights = ef.clean_weights()
+
+            # Display selected ticker data
+            st.subheader('Selected Ticker Data')
+            st.write(data)
+
+            # Display optimized portfolio weights
+            st.subheader('Optimized Portfolio Weights')
+            st.write(pd.Series(weights))
+
+            # Plot Efficient Frontier
+            st.subheader('Efficient Frontier')
+            fig = plot_efficient_frontier(ef)
+            st.plotly_chart(fig)
+
+            # Display portfolio metrics
+            st.subheader('Portfolio Metrics')
+            expected_return, volatility, sharpe_ratio = ef.portfolio_performance(verbose=False)
+            st.write(f'Expected Annual Return: {expected_return:.2%}')
+            st.write(f'Volatility: {volatility:.2%}')
+            st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
+
+        else:
+            st.error("No data available for selected tickers. Please check your input.")
+
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+
+# Helper function to plot Efficient Frontier
+def plot_efficient_frontier(ef):
+    fig = go.Figure()
+    for ticker in ef.tickers:
+        fig.add_trace(go.Scatter(x=np.sqrt(np.diag(ef.cov_matrix)), y=ef.expected_returns, mode='markers', name=ticker))
+
+    # Highlighting the optimized portfolio
+    weights = np.array(list(ef.weights.values()))
+    fig.add_trace(go.Scatter(x=np.sqrt(ef.portfolio_performance()[1]), y=ef.portfolio_performance()[0],
+                             mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
+    
+    fig.update_layout(title='Efficient Frontier',
+                      xaxis_title='Volatility',
+                      yaxis_title='Expected Return')
+    return fig
+
 # Stock Analysis
 if option == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -173,74 +245,3 @@ elif option == "Stock Price Prediction":
 elif option == "Portfolio Optimization":
     ticker_symbols = st.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
     display_portfolio_optimization(ticker_symbols)
-
-def display_portfolio_optimization(ticker_symbols):
-    st.header('Portfolio Optimization')
-
-    st.sidebar.header('Portfolio Optimization Parameters')
-
-    # Input validation and error handling
-    try:
-        # Fetching data for selected tickers
-        tickers = [x.strip() for x in ticker_symbols.split(',')]
-        st.write("Fetching data for tickers:", tickers)  # Add this line for debugging
-        data = yf.download(tickers)['Adj Close']
-        st.write("Fetched data shape:", data.shape)  # Add this line for debugging
-
-        # Check if data is available for selected tickers
-        if not data.empty:
-            # Calculate expected returns and sample covariance
-            mu = expected_returns.mean_historical_return(data)
-            Sigma = risk_models.sample_cov(data)
-
-            # Allow customization of optimization parameters
-            risk_tolerance = st.sidebar.slider("Risk Tolerance", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
-            target_return = st.sidebar.slider("Target Return", min_value=0.0, max_value=0.5, value=0.2, step=0.01)
-
-            # Perform portfolio optimization
-            ef = EfficientFrontier(mu, Sigma)
-            ef.add_constraint(lambda x: x >= 0)  # Ensure non-negative weights
-            ef.efficient_risk(target_return, market_neutral=True, risk_free_rate=0.02)  # Adjust risk-free rate if needed
-            weights = ef.clean_weights()
-
-            # Display selected ticker data
-            st.subheader('Selected Ticker Data')
-            st.write(data)
-
-            # Display optimized portfolio weights
-            st.subheader('Optimized Portfolio Weights')
-            st.write(pd.Series(weights))
-
-            # Plot Efficient Frontier
-            st.subheader('Efficient Frontier')
-            fig = plot_efficient_frontier(ef)
-            st.plotly_chart(fig)
-
-            # Display portfolio metrics
-            st.subheader('Portfolio Metrics')
-            expected_return, volatility, sharpe_ratio = ef.portfolio_performance(verbose=False)
-            st.write(f'Expected Annual Return: {expected_return:.2%}')
-            st.write(f'Volatility: {volatility:.2%}')
-            st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
-
-        else:
-            st.error("No data available for selected tickers. Please check your input.")
-
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-
-# Helper function to plot Efficient Frontier
-def plot_efficient_frontier(ef):
-    fig = go.Figure()
-    for ticker in ef.tickers:
-        fig.add_trace(go.Scatter(x=np.sqrt(np.diag(ef.cov_matrix)), y=ef.expected_returns, mode='markers', name=ticker))
-
-    # Highlighting the optimized portfolio
-    weights = np.array(list(ef.weights.values()))
-    fig.add_trace(go.Scatter(x=np.sqrt(ef.portfolio_performance()[1]), y=ef.portfolio_performance()[0],
-                             mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
-    
-    fig.update_layout(title='Efficient Frontier',
-                      xaxis_title='Volatility',
-                      yaxis_title='Expected Return')
-    return fig
