@@ -15,5 +15,5 @@ requests
 Python-IO
 pyportfolioopt==1.5.5
 requests
-beautifulsoup4
+beautifulsoup
 vaderSentiment
