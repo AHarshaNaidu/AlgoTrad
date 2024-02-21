@@ -43,7 +43,7 @@ stock price prediction using LSTM, and portfolio optimization.
 """
 
 # Sidebar menu
-selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
+selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
 
 # About page
 if selected_tab == "About":
@@ -178,9 +178,9 @@ elif selected_tab == "Stock Price Prediction":
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
-# Portfolio Optimization
-elif selected_tab == "Portfolio Optimization":
-    st.sidebar.header('Portfolio Optimization Parameters')
+# Long-Term Portfolio Optimization
+elif selected_tab == "Long-Term Portfolio Optimization":
+    st.sidebar.header('Long-Term Portfolio Optimization Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 
     # Fetching data for selected tickers
@@ -223,6 +223,61 @@ elif selected_tab == "Portfolio Optimization":
 
         # Display portfolio metrics
         st.subheader('Portfolio Metrics')
+        st.write(f'Expected Annual Return: {expected_return:.2%}')
+        st.write(f'Annual Volatility: {annual_volatility:.2%}')
+        st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
+
+    else:
+        st.error("No data available for selected tickers. Please check your input.")
+
+# Short-Term Portfolio Optimization
+elif selected_tab == "Short-Term Portfolio Optimization":
+    st.sidebar.header('Short-Term Portfolio Optimization Parameters')
+    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+
+    # Fetching data for selected tickers
+    tickers = [x.strip() for x in tickerSymbols.split(',')]
+    data = yf.download(tickers)['Adj Close']
+
+    # Check if data is available for selected tickers
+    if not data.empty:
+        # Calculate expected returns based on short-term momentum
+        mu = expected_returns.ema_historical_return(data)
+
+        # Calculate sample covariance based on short-term data
+        short_term_data = data.iloc[-30:]  # Using the last 30 days for short-term optimization
+        Sigma = risk_models.sample_cov(short_term_data)
+
+        # Perform short-term portfolio optimization
+        ef = EfficientFrontier(mu, Sigma)
+        raw_weights = ef.max_sharpe()
+        cleaned_weights = ef.clean_weights()
+        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
+
+        # Display selected ticker data
+        st.subheader('Selected Ticker Data (Short-Term)')
+        st.write(short_term_data)
+
+        # Display optimized portfolio weights for short-term
+        st.subheader('Optimized Portfolio Weights (Short-Term)')
+        st.write(pd.Series(cleaned_weights))
+
+        # Plot Efficient Frontier for short-term
+        st.subheader('Efficient Frontier (Short-Term)')
+        fig = go.Figure()
+        for ticker in tickers:
+            fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
+
+        # Highlighting the optimized portfolio for short-term
+        fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio (Short-Term)'))
+
+        fig.update_layout(title='Efficient Frontier (Short-Term)',
+                          xaxis_title='Annual Volatility',
+                          yaxis_title='Expected Annual Return')
+        st.plotly_chart(fig)
+
+        # Display portfolio metrics for short-term
+        st.subheader('Portfolio Metrics (Short-Term)')
         st.write(f'Expected Annual Return: {expected_return:.2%}')
         st.write(f'Annual Volatility: {annual_volatility:.2%}')
         st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
