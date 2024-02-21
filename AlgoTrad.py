@@ -191,12 +191,12 @@ elif option == "Portfolio Optimization":
 
             # Allow customization of optimization parameters
             risk_tolerance = st.sidebar.slider("Risk Tolerance", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
-            target_return = st.sidebar.slider("Target Return", min_value=0.0, max_value=0.5, value=0.2, step=0.01)
+            target_volatility = st.sidebar.slider("Target Volatility", min_value=0.0, max_value=0.5, value=0.2, step=0.01)
 
             # Perform portfolio optimization
             ef = EfficientFrontier(mu, Sigma)
             ef.add_constraint(lambda x: x >= 0)  # Ensure non-negative weights
-            ef.efficient_risk(target_return, market_neutral=True)  # Remove risk_free_rate argument
+            ef.efficient_risk(target_volatility, market_neutral=True)  # Adjusted to target_volatility
             weights = ef.clean_weights()
 
             # Display selected ticker data
