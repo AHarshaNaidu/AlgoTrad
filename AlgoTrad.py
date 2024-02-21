@@ -250,80 +250,47 @@ elif selected_tab == "Long-Term Portfolio Optimization":
         fig_port.update_layout(title='Long-Term Portfolio Backtest Performance', xaxis_title='Date', yaxis_title='Portfolio Value')
         st.plotly_chart(fig_port)
 
-    else:
-        st.error("No data available for selected tickers. Please check your input.")
+        # Additional section for generating new portfolio with date query parameters
+        st.subheader('Generate New Portfolio Optimization with Date Query Parameters')
 
-# Short-Term Portfolio Optimization with Backtest
-elif selected_tab == "Short-Term Portfolio Optimization":
-    st.sidebar.header('Short-Term Portfolio Optimization Parameters')
-    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+        start_date_opt = st.date_input("Start Date for Optimization", datetime.date(2021, 1, 1))
+        end_date_opt = st.date_input("End Date for Optimization", datetime.date(2021, 12, 31))
 
-    # Fetching data for selected tickers
-    tickers = [x.strip() for x in tickerSymbols.split(',')]
-    data = yf.download(tickers)['Adj Close']
+        data_opt = data.loc[start_date_opt:end_date_opt]
 
-    # Check if data is available for selected tickers
-    if not data.empty:
-        # Calculate expected returns based on short-term momentum
-        mu = expected_returns.ema_historical_return(data)
+        if not data_opt.empty:
+            # Calculate expected returns and sample covariance for optimized data
+            mu_opt = expected_returns.mean_historical_return(data_opt)
+            Sigma_opt = risk_models.sample_cov(data_opt)
 
-        # Calculate sample covariance based on short-term data
-        short_term_data = data.iloc[-30:]  # Using the last 30 days for short-term optimization
-        Sigma = risk_models.sample_cov(short_term_data)
+            # Perform portfolio optimization
+            ef_opt = EfficientFrontier(mu_opt, Sigma_opt)
+            raw_weights_opt = ef_opt.max_sharpe()
+            cleaned_weights_opt = ef_opt.clean_weights()
+            expected_return_opt, annual_volatility_opt, sharpe_ratio_opt = ef_opt.portfolio_performance(verbose=True)
 
-        # Perform short-term portfolio optimization
-        ef = EfficientFrontier(mu, Sigma)
-        raw_weights = ef.max_sharpe()
-        cleaned_weights = ef.clean_weights()
-        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
+            # Display optimized portfolio weights
+            st.subheader('Optimized Portfolio Weights (with Date Query Parameters)')
+            st.write(pd.Series(cleaned_weights_opt))
 
-        # Display selected ticker data
-        st.subheader('Selected Ticker Data (Short-Term)')
-        st.write(short_term_data)
+            # Backtesting for optimized portfolio with date query parameters
+            st.subheader('Long-Term Portfolio Backtest (with Date Query Parameters)')
+            initial_investment_opt = st.number_input('Initial Investment ($)', value=10000)
+            allocation_opt = discrete_allocation.DiscreteAllocation(cleaned_weights_opt, data_opt.iloc[-1], initial_investment_opt)
+            portfolio_opt, leftover_cash_opt = allocation_opt.lp_portfolio()
+            st.write(f'Leftover Cash: ${leftover_cash_opt:.2f}')
+            st.write('Portfolio Composition:')
+            st.write(portfolio_opt)
 
-        # Display optimized portfolio weights for short-term
-        st.subheader('Optimized Portfolio Weights (Short-Term)')
-        st.write(pd.Series(cleaned_weights))
-
-        # Plot Efficient Frontier for short-term
-        st.subheader('Efficient Frontier (Short-Term)')
-        fig = go.Figure()
-        for ticker in tickers:
-            fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
-
-        # Highlighting the optimized portfolio for short-term
-        fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio (Short-Term)'))
-
-        fig.update_layout(title='Efficient Frontier (Short-Term)',
-                          xaxis_title='Annual Volatility',
-                          yaxis_title='Expected Annual Return')
-        st.plotly_chart(fig)
-
-        # Display portfolio metrics for short-term
-        st.subheader('Portfolio Metrics (Short-Term)')
-        st.write(f'Expected Annual Return: {expected_return:.2%}')
-        st.write(f'Annual Volatility: {annual_volatility:.2%}')
-        st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
-
-        # Backtesting
-        st.subheader('Short-Term Portfolio Backtest')
-        initial_investment = st.number_input('Initial Investment ($)', value=10000)
-        allocation = discrete_allocation.DiscreteAllocation(cleaned_weights, data.iloc[-1], initial_investment)
-        portfolio, leftover_cash = allocation.lp_portfolio()
-        st.write(f'Leftover Cash: ${leftover_cash:.2f}')
-        st.write('Portfolio Composition:')
-        st.write(portfolio)
-
-        # Plotting portfolio performance
-        port_val = pd.Series(index=data.index, data=0.0)
-        for ticker, shares in portfolio.items():
-            port_val += data[ticker] * shares
-        port_val = port_val[port_val != 0]
-        port_val /= initial_investment
-        fig_port = go.Figure()
-        fig_port.add_trace(go.Scatter(x=port_val.index, y=port_val, mode='lines', name='Portfolio Value'))
-        fig_port.update_layout(title='Short-Term Portfolio Backtest Performance', xaxis_title='Date', yaxis_title='Portfolio Value')
-        st.plotly_chart(fig_port)
-
-    else:
-        st.error("No data available for selected tickers. Please check your input.")
+            # Plotting portfolio performance for optimized portfolio with date query parameters
+            port_val_opt = pd.Series(index=data_opt.index, data=0.0)
+            for ticker, shares in portfolio_opt.items():
+                port_val_opt += data_opt[ticker] * shares
+            port_val_opt = port_val_opt[port_val_opt != 0]
+            port_val_opt /= initial_investment_opt
+            fig_port_opt = go.Figure()
+            fig_port_opt.add_trace(go.Scatter(x=port_val_opt.index, y=port_val_opt, mode='lines', name='Portfolio Value'))
+            fig_port_opt.update_layout(title='Long-Term Portfolio Backtest Performance (with Date Query Parameters)', xaxis_title='Date', yaxis_title='Portfolio Value')
+            st.plotly_chart(fig_port_opt)
+        else:
+            st.error("No data available for the selected date range. Please adjust the date parameters.")
