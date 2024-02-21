@@ -28,26 +28,35 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Function to fetch ticker data
-def fetch_ticker_data(ticker_symbol, start_date, end_date):
-    tickerData = yf.Ticker(ticker_symbol)
-    return tickerData.history(period='1d', start=start_date, end=end_date)
+# App title and description
+st.title('Algorithmic Trading Strategies')
+st.markdown('---')
+st.markdown('Scale +91 Hackathon | FFI 2024')
+st.markdown('Team GARUDA')
+st.write("Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))")
+st.write("This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.")
 
-# Function to display stock analysis
-def display_stock_analysis(ticker_symbol, start_date, end_date):
+st.sidebar.title("Select Analysis")
+option = st.sidebar.radio("", ("Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
+
+# Stock Analysis
+if option == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
+    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
     # Fetching ticker information
-    tickerData = yf.Ticker(ticker_symbol)
+    tickerData = yf.Ticker(tickerSymbol)
     string_name = tickerData.info.get('longName', 'N/A')
     string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
 
-    st.subheader(f"Stock Analysis: {ticker_symbol} - {string_name}")
+    st.subheader(f"Stock Analysis: {tickerSymbol} - {string_name}")
     st.info(string_summary)
 
     # Ticker data
     st.header('Historical Stock Data')
-    tickerDf = fetch_ticker_data(ticker_symbol, start_date, end_date)
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
+    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
     st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
@@ -90,19 +99,22 @@ def display_stock_analysis(ticker_symbol, start_date, end_date):
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
-# Function to display stock price prediction
-def display_stock_price_prediction(ticker_symbol, start_date, end_date):
+# Stock Price Prediction
+elif option == "Stock Price Prediction":
     st.sidebar.header('Stock Prediction Parameters')
+    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
     # Fetching ticker information
-    tickerData = yf.Ticker(ticker_symbol)
+    tickerData = yf.Ticker(tickerSymbol)
     string_name = tickerData.info.get('longName', 'N/A')
 
-    st.subheader(f"Stock Price Prediction: {ticker_symbol} - {string_name}")
+    st.subheader(f"Stock Price Prediction: {tickerSymbol} - {string_name}")
 
     # Ticker data
     st.header('Historical Stock Data')
-    tickerDf = fetch_ticker_data(ticker_symbol, start_date, end_date)
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
+    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
     st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
@@ -157,88 +169,77 @@ def display_stock_price_prediction(ticker_symbol, start_date, end_date):
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
-# Function to display portfolio optimization
+# Portfolio Optimization
+elif option == "Portfolio Optimization":
+    ticker_symbols = st.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
+    display_portfolio_optimization(ticker_symbols)
+
 def display_portfolio_optimization(ticker_symbols):
+    st.header('Portfolio Optimization')
+
     st.sidebar.header('Portfolio Optimization Parameters')
 
-    # Fetching data for selected tickers
-    tickers = [x.strip() for x in ticker_symbols.split(',')]
-    data = yf.download(tickers)['Adj Close']
+    # Input validation and error handling
+    try:
+        # Fetching data for selected tickers
+        tickers = [x.strip() for x in ticker_symbols.split(',')]
+        data = yf.download(tickers)['Adj Close']
 
-    # Check if data is available for selected tickers
-    if not data.empty:
-        # Calculate expected returns and sample covariance
-        mu = expected_returns.mean_historical_return(data)
-        Sigma = risk_models.sample_cov(data)
+        # Check if data is available for selected tickers
+        if not data.empty:
+            # Calculate expected returns and sample covariance
+            mu = expected_returns.mean_historical_return(data)
+            Sigma = risk_models.sample_cov(data)
 
-        # Perform portfolio optimization
-        ef = EfficientFrontier(mu, Sigma)
-        raw_weights = ef.max_sharpe()
-        cleaned_weights = ef.clean_weights()
-        expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
+            # Allow customization of optimization parameters
+            risk_tolerance = st.sidebar.slider("Risk Tolerance", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
+            target_return = st.sidebar.slider("Target Return", min_value=0.0, max_value=0.5, value=0.2, step=0.01)
 
-        # Display selected ticker data
-        st.subheader('Selected Ticker Data')
-        st.write(data)
+            # Perform portfolio optimization
+            ef = EfficientFrontier(mu, Sigma)
+            ef.add_constraint(lambda x: x >= 0)  # Ensure non-negative weights
+            ef.efficient_risk(target_return, market_neutral=True, risk_free_rate=0.02)  # Adjust risk-free rate if needed
+            weights = ef.clean_weights()
 
-        # Display optimized portfolio weights
-        st.subheader('Optimized Portfolio Weights')
-        st.write(pd.Series(cleaned_weights))
+            # Display selected ticker data
+            st.subheader('Selected Ticker Data')
+            st.write(data)
 
-        # Plot Efficient Frontier
-        st.subheader('Efficient Frontier')
-        fig = go.Figure()
-        for ticker in tickers:
-            fig.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
+            # Display optimized portfolio weights
+            st.subheader('Optimized Portfolio Weights')
+            st.write(pd.Series(weights))
 
-        # Highlighting the optimized portfolio
-        fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
+            # Plot Efficient Frontier
+            st.subheader('Efficient Frontier')
+            fig = plot_efficient_frontier(ef)
+            st.plotly_chart(fig)
 
-        fig.update_layout(title='Efficient Frontier',
-                          xaxis_title='Annual Volatility',
-                          yaxis_title='Expected Annual Return')
-        st.plotly_chart(fig)
+            # Display portfolio metrics
+            st.subheader('Portfolio Metrics')
+            expected_return, volatility, sharpe_ratio = ef.portfolio_performance(verbose=False)
+            st.write(f'Expected Annual Return: {expected_return:.2%}')
+            st.write(f'Volatility: {volatility:.2%}')
+            st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
 
-        # Display portfolio metrics
-        st.subheader('Portfolio Metrics')
-        st.write(f'Expected Annual Return: {expected_return:.2%}')
-        st.write(f'Annual Volatility: {annual_volatility:.2%}')
-        st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
+        else:
+            st.error("No data available for selected tickers. Please check your input.")
 
-    else:
-        st.error("No data available for selected tickers. Please check your input.")
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
 
-# Main function
-def main():
-    st.title('Algorithmic Trading Strategies')
+# Helper function to plot Efficient Frontier
+def plot_efficient_frontier(ef):
+    fig = go.Figure()
+    for ticker in ef.tickers:
+        fig.add_trace(go.Scatter(x=np.sqrt(np.diag(ef.cov_matrix)), y=ef.expected_returns, mode='markers', name=ticker))
 
-    # About Page
-    st.header("About")
-    st.markdown("""
-    Algorithmic Trading Strategies  
-    Scale +91 Hackathon | FFI 2024  
-
-    Team GARUDA  
-
-    Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))  
-
-    This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
-    """)
-
-    st.markdown('---')
-
-    # Sidebar selection
-    st.sidebar.title("Select Analysis")
-    option = st.sidebar.radio("", ("About", "Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
-
-    # Display pages based on selection
-    if option == "Stock Analysis":
-        display_stock_analysis('AAPL', datetime.date(2019, 1, 1), datetime.date(2021, 1, 31))
-    elif option == "Stock Price Prediction":
-        display_stock_price_prediction('AAPL', datetime.date(2019, 1, 1), datetime.date(2021, 1, 31))
-    elif option == "Portfolio Optimization":
-        display_portfolio_optimization('AAPL, MSFT, GOOGL')
-
-if __name__ == "__main__":
-    main()
-        
+    # Highlighting the optimized portfolio
+    weights = np.array(list(ef.weights.values()))
+    fig.add_trace(go.Scatter(x=np.sqrt(ef.portfolio_performance()[1]), y=ef.portfolio_performance()[0],
+                             mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
+    
+    fig.update_layout(title='Efficient Frontier',
+                      xaxis_title='Volatility',
+                      yaxis_title='Expected Return')
+    return fig
+            
