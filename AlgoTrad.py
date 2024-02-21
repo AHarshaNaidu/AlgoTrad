@@ -32,14 +32,26 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+import streamlit as st
+import yfinance as yf
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
 # Function to fetch financial news articles
 def fetch_news(ticker):
     url = f"https://finance.yahoo.com/quote/{ticker}/news"
     response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    articles = soup.find_all('h3', class_='Mb(5px)')
-    news_headlines = [article.text for article in articles]
-    return news_headlines
+    print("Response status code:", response.status_code)  # Debug print
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        articles = soup.find_all('h3', class_='Mb(5px)')
+        news_headlines = [article.text for article in articles]
+        return news_headlines
+    else:
+        print("Failed to fetch news articles.")  # Debug print
+        return []
 
 # Function to perform sentiment analysis
 def analyze_sentiment(text):
@@ -56,8 +68,11 @@ ticker_symbol = st.sidebar.text_input("Enter Stock Ticker Symbol", value='AAPL',
 # Fetching financial news for the selected stock ticker
 st.subheader(f"Latest News for {ticker_symbol}")
 news_articles = fetch_news(ticker_symbol)
-for article in news_articles:
-    st.write(article)
+if news_articles:
+    for article in news_articles:
+        st.write(article)
+else:
+    st.error("Failed to fetch news articles. Please check the stock ticker symbol.")
 
 # Perform sentiment analysis for each news article
 sentiment_results = []
