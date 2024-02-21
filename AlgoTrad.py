@@ -28,44 +28,26 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# About page content
-about_content = """
-# Algorithmic Trading Strategies
+# Function to fetch ticker data
+def fetch_ticker_data(ticker_symbol, start_date, end_date):
+    tickerData = yf.Ticker(ticker_symbol)
+    return tickerData.history(period='1d', start=start_date, end=end_date)
 
-**Scale +91 Hackathon | FFI 2024**
-
-**Team GARUDA**
-
-Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
-
-This app provides various algorithmic trading strategies including technical analysis, 
-stock price prediction using LSTM, and portfolio optimization.
-"""
-
-# Sidebar menu
-selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
-
-# About page
-if selected_tab == "About":
-    st.markdown(about_content)
-# Stock Analysis
-elif selected_tab == "Stock Analysis":
+# Function to display stock analysis
+def display_stock_analysis(ticker_symbol, start_date, end_date):
     st.sidebar.header('Stock Analysis Parameters')
-    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
     # Fetching ticker information
-    tickerData = yf.Ticker(tickerSymbol)
+    tickerData = yf.Ticker(ticker_symbol)
     string_name = tickerData.info.get('longName', 'N/A')
     string_summary = tickerData.info.get('longBusinessSummary', 'N/A')
 
-    st.subheader(f"Stock Analysis: {tickerSymbol} - {string_name}")
+    st.subheader(f"Stock Analysis: {ticker_symbol} - {string_name}")
     st.info(string_summary)
 
     # Ticker data
     st.header('Historical Stock Data')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
-    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
+    tickerDf = fetch_ticker_data(ticker_symbol, start_date, end_date)
     st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
@@ -108,22 +90,19 @@ elif selected_tab == "Stock Analysis":
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
-# Stock Price Prediction
-elif selected_tab == "Stock Price Prediction":
+# Function to display stock price prediction
+def display_stock_price_prediction(ticker_symbol, start_date, end_date):
     st.sidebar.header('Stock Prediction Parameters')
-    tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
 
     # Fetching ticker information
-    tickerData = yf.Ticker(tickerSymbol)
+    tickerData = yf.Ticker(ticker_symbol)
     string_name = tickerData.info.get('longName', 'N/A')
 
-    st.subheader(f"Stock Price Prediction: {tickerSymbol} - {string_name}")
+    st.subheader(f"Stock Price Prediction: {ticker_symbol} - {string_name}")
 
     # Ticker data
     st.header('Historical Stock Data')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
-    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
+    tickerDf = fetch_ticker_data(ticker_symbol, start_date, end_date)
     st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
@@ -178,13 +157,12 @@ elif selected_tab == "Stock Price Prediction":
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
 
-# Portfolio Optimization
-elif selected_tab == "Portfolio Optimization":
+# Function to display portfolio optimization
+def display_portfolio_optimization(ticker_symbols):
     st.sidebar.header('Portfolio Optimization Parameters')
-    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
 
     # Fetching data for selected tickers
-    tickers = [x.strip() for x in tickerSymbols.split(',')]
+    tickers = [x.strip() for x in ticker_symbols.split(',')]
     data = yf.download(tickers)['Adj Close']
 
     # Check if data is available for selected tickers
@@ -229,3 +207,38 @@ elif selected_tab == "Portfolio Optimization":
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
+
+# Main function
+def main():
+    st.title('Algorithmic Trading Strategies')
+
+    # About Page
+    st.header("About")
+    st.markdown("""
+    Algorithmic Trading Strategies  
+    Scale +91 Hackathon | FFI 2024  
+
+    Team GARUDA  
+
+    Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))  
+
+    This app provides various algorithmic trading strategies including technical analysis, stock price prediction using LSTM, and portfolio optimization.
+    """)
+
+    st.markdown('---')
+
+    # Sidebar selection
+    st.sidebar.title("Select Analysis")
+    option = st.sidebar.radio("", ("About", "Stock Analysis", "Stock Price Prediction", "Portfolio Optimization"))
+
+    # Display pages based on selection
+    if option == "Stock Analysis":
+        display_stock_analysis('AAPL', datetime.date(2019, 1, 1), datetime.date(2021, 1, 31))
+    elif option == "Stock Price Prediction":
+        display_stock_price_prediction('AAPL', datetime.date(2019, 1, 1), datetime.date(2021, 1, 31))
+    elif option == "Portfolio Optimization":
+        display_portfolio_optimization('AAPL, MSFT, GOOGL')
+
+if __name__ == "__main__":
+    main()
+        
