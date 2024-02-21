@@ -1,9 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import cufflinks as cf
 import datetime
-from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
@@ -14,11 +12,6 @@ import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
-
-# Set custom theme colors
-PRIMARY_COLOR = "#E63946"  # Red
-BACKGROUND_COLOR = "#F1FAEE"  # Light green
-TEXT_COLOR = "#264653"  # Dark blue
 
 # Set page configuration
 st.set_page_config(
