@@ -174,6 +174,7 @@ elif option == "Portfolio Optimization":
     ticker_symbols = st.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
     display_portfolio_optimization(ticker_symbols)
 
+# Helper function to display portfolio optimization
 def display_portfolio_optimization(ticker_symbols):
     st.header('Portfolio Optimization')
 
@@ -242,4 +243,4 @@ def plot_efficient_frontier(ef):
                       xaxis_title='Volatility',
                       yaxis_title='Expected Return')
     return fig
-            
+        
