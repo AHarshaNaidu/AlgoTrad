@@ -196,7 +196,11 @@ elif option == "Portfolio Optimization":
             # Perform portfolio optimization
             ef = EfficientFrontier(mu, Sigma)
             ef.add_constraint(lambda x: x >= 0)  # Ensure non-negative weights
-            ef.efficient_risk(target_volatility, market_neutral=True)  # Adjusted to target_volatility
+            try:
+                ef.efficient_risk(target_volatility, market_neutral=True)  # Adjusted to target_volatility
+            except ValueError as e:
+                st.error(f"The minimum volatility is {ef.portfolio_performance()[1]:.3f}. Please use a higher target_volatility.")
+                st.stop()
             weights = ef.clean_weights()
 
             # Display selected ticker data
@@ -224,19 +228,3 @@ elif option == "Portfolio Optimization":
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
-
-# Helper function to plot Efficient Frontier
-def plot_efficient_frontier(ef):
-    fig = go.Figure()
-    for ticker in ef.tickers:
-        fig.add_trace(go.Scatter(x=np.sqrt(np.diag(ef.cov_matrix)), y=ef.expected_returns, mode='markers', name=ticker))
-
-    # Highlighting the optimized portfolio
-    weights = np.array(list(ef.weights.values()))
-    fig.add_trace(go.Scatter(x=np.sqrt(ef.portfolio_performance()[1]), y=ef.portfolio_performance()[0],
-                             mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
-    
-    fig.update_layout(title='Efficient Frontier',
-                      xaxis_title='Volatility',
-                      yaxis_title='Expected Return')
-    return fig
