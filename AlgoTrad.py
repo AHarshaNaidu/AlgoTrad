@@ -1,13 +1,26 @@
+no give me full code Integrate it in this :
+
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import cufflinks as cf
 import datetime
+from ta.trend import IchimokuIndicator
 import plotly.graph_objs as go
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
 import pypfopt
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
+
+# Set custom theme colors
+PRIMARY_COLOR = "#E63946"  # Red
+BACKGROUND_COLOR = "#F1FAEE"  # Light green
+TEXT_COLOR = "#264653"  # Dark blue
 
 # Set page configuration
 st.set_page_config(
@@ -182,7 +195,7 @@ elif selected_tab == "Portfolio Optimization":
         mu = expected_returns.mean_historical_return(data)
         Sigma = risk_models.sample_cov(data)
 
-        # Perform Mean-Variance Optimization (MVO)
+        # Perform portfolio optimization
         ef = EfficientFrontier(mu, Sigma)
         raw_weights = ef.max_sharpe()
         cleaned_weights = ef.clean_weights()
