@@ -1,9 +1,6 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import cufflinks as cf
 import datetime
 from ta.trend import IchimokuIndicator
@@ -32,63 +29,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-import streamlit as st
-import yfinance as yf
-import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-
-# Function to fetch financial news articles
-def fetch_news(ticker):
-    url = f"https://finance.yahoo.com/quote/{ticker}/news"
-    response = requests.get(url)
-    print("Response status code:", response.status_code)  # Debug print
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
-        articles = soup.find_all('h3', class_='Mb(5px)')
-        news_headlines = [article.text for article in articles]
-        return news_headlines
-    else:
-        print("Failed to fetch news articles.")  # Debug print
-        return []
-
-# Function to perform sentiment analysis
-def analyze_sentiment(text):
-    analyzer = SentimentIntensityAnalyzer()
-    sentiment_scores = analyzer.polarity_scores(text)
-    return sentiment_scores
-
-# Streamlit app
-st.title("Real-Time Sentiment Analysis of Financial News")
-
-# Sidebar for selecting stock ticker
-ticker_symbol = st.sidebar.text_input("Enter Stock Ticker Symbol", value='AAPL', max_chars=5)
-
-# Fetching financial news for the selected stock ticker
-st.subheader(f"Latest News for {ticker_symbol}")
-news_articles = fetch_news(ticker_symbol)
-if news_articles:
-    for article in news_articles:
-        st.write(article)
-else:
-    st.error("Failed to fetch news articles. Please check the stock ticker symbol.")
-
-# Perform sentiment analysis for each news article
-sentiment_results = []
-for article in news_articles:
-    sentiment_scores = analyze_sentiment(article)
-    sentiment_results.append(sentiment_scores)
-
-# Display sentiment analysis results
-st.subheader("Sentiment Analysis Results")
-df_sentiment = pd.DataFrame(sentiment_results)
-st.write(df_sentiment)
-
-# Visualize sentiment scores
-st.subheader("Visualization of Sentiment Scores")
-st.bar_chart(df_sentiment)
-
 # About page content
 about_content = """
 # Algorithmic Trading Strategies
@@ -109,7 +49,6 @@ selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
-
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
