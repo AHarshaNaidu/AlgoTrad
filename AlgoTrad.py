@@ -46,10 +46,40 @@ stock price prediction using LSTM, and portfolio optimization.
 # Sidebar menu
 selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
 
+# Interactive Visualization Section
+if selected_tab in ["Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"]:
+    st.sidebar.subheader("Visualization Options")
+    visualization_option = st.sidebar.selectbox("Select Visualization", ["Historical Data", "Model Predictions", "Portfolio Performance"])
+
+    # Interactive Visualization based on user selection
+    if visualization_option == "Historical Data":
+        # Display interactive chart for historical stock data
+        st.subheader("Interactive Historical Stock Data Visualization")
+        if 'Close' in tickerDf.columns:
+            fig_historical = go.Figure()
+            # Add traces for each column in tickerDf
+            for column in tickerDf.columns:
+                fig_historical.add_trace(go.Scatter(x=tickerDf.index, y=tickerDf[column], mode="lines", name=column))
+            fig_historical.update_layout(title="Historical Stock Data",
+                                         xaxis_title="Date",
+                                         yaxis_title="Value")
+            st.plotly_chart(fig_historical)
+        else:
+            st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
+
+    elif visualization_option == "Model Predictions":
+        # Display interactive chart for actual vs predicted prices
+        st.subheader("Interactive Actual vs Predicted Prices Visualization")
+        st.write("This visualization is available only in the 'Stock Price Prediction' section.")
+
+    elif visualization_option == "Portfolio Performance":
+        # Display interactive chart for efficient frontier
+        st.subheader("Interactive Efficient Frontier Visualization")
+        st.write("This visualization is available only in the 'Long-Term Portfolio Optimization' and 'Short-Term Portfolio Optimization' sections.")
+
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
-
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -106,22 +136,6 @@ elif selected_tab == "Stock Analysis":
                                         go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
                                     layout=go.Layout(title='Ichimoku Cloud'))
         st.plotly_chart(fig_ichimoku)
-
-        # Interactive Visualization based on user selection
-        st.sidebar.subheader("Visualization Options")
-        visualization_option = st.sidebar.selectbox("Select Visualization", ["Historical Data", "Model Predictions", "Portfolio Performance"])
-
-        if visualization_option == "Historical Data":
-            # Display interactive chart for historical stock data
-            st.subheader("Interactive Historical Stock Data Visualization")
-            fig_historical = go.Figure()
-            # Add traces for each column in tickerDf
-            for column in tickerDf.columns:
-                fig_historical.add_trace(go.Scatter(x=tickerDf.index, y=tickerDf[column], mode="lines", name=column))
-            fig_historical.update_layout(title="Historical Stock Data",
-                                         xaxis_title="Date",
-                                         yaxis_title="Value")
-            st.plotly_chart(fig_historical)
 
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
