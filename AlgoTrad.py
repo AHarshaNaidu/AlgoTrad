@@ -16,6 +16,14 @@ from pypfopt import risk_models
 from pypfopt import expected_returns
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+# Function to create sequences for LSTM model
+def create_sequences(data, seq_length):
+    X, y = [], []
+    for i in range(len(data) - seq_length):
+        X.append(data[i:i + seq_length])
+        y.append(data[i + seq_length])
+    return np.array(X), np.array(y)
+
 # Set custom theme colors
 PRIMARY_COLOR = "#E63946"  # Red
 BACKGROUND_COLOR = "#F1FAEE"  # Light green
