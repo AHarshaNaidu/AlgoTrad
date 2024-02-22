@@ -124,7 +124,7 @@ elif selected_tab == "Stock Analysis":
 elif selected_tab == "Stock Price Prediction":
     st.sidebar.header('Stock Prediction Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
-    future_days = st.sidebar.slider('Select number of future days to predict', min_value=1, max_value=365, value=30)
+    future_days = st.number_input('Select number of future days to predict', min_value=1, max_value=365, value=30)
 
     # Fetching ticker information
     tickerData = yf.Ticker(tickerSymbol)
@@ -132,32 +132,15 @@ elif selected_tab == "Stock Price Prediction":
 
     st.subheader(f"Stock Price Prediction: {tickerSymbol} - {string_name}")
 
-    # Train the model with historical data
-    if st.sidebar.button('Train Model'):
-        start_date = datetime.date(2019, 1, 1)
-        end_date = datetime.date.today()
-        tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
-        data = tickerDf['Close'].values.reshape(-1, 1)
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        scaled_data = scaler.fit_transform(data)
-        seq_length = 60
-        X, y = create_sequences(scaled_data, seq_length)
+    # Ticker data
+    st.header('Historical Stock Data')
+    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
+    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
+    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
 
-        # Build the LSTM model
-        model = Sequential()
-        model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
-        model.add(LSTM(units=50))
-        model.add(Dense(units=1))
-        model.compile(optimizer='adam', loss='mean_squared_error')
-
-        model.fit(X, y, epochs=20, batch_size=64)
-
-        st.success('Model trained successfully!')
-
-    # Predict future stock prices
-    if st.sidebar.button('Predict Future'):
+    if st.button('Predict Future'):
         if tickerDf is None:
-            st.error("Please train the model first.")
+            st.error("Please select a stock and specify the number of future days to predict.")
         elif 'Close' not in tickerDf.columns:
             st.error("Failed to predict. Please check if the 'Close' column exists.")
         elif len(tickerDf) <= 1:
@@ -165,12 +148,22 @@ elif selected_tab == "Stock Price Prediction":
         else:
             # Prepare the data for prediction
             data = tickerDf['Close'].values.reshape(-1, 1)
-            scaled_data = scaler.transform(data)
+            scaler = MinMaxScaler(feature_range=(0, 1))
+            scaled_data = scaler.fit_transform(data)
+            seq_length = 60
+            X, y = create_sequences(scaled_data, seq_length)
+
+            # Build the LSTM model
+            model = Sequential()
+            model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
+            model.add(LSTM(units=50))
+            model.add(Dense(units=1))
+            model.compile(optimizer='adam', loss='mean_squared_error')
+
+            model.fit(X, y, epochs=20, batch_size=64)
 
             # Generate future sequences for prediction
             future_seq = scaled_data[-seq_length:].tolist()
-
-            # Predict future stock prices
             future_preds = []
             for _ in range(future_days):
                 current_seq = np.array(future_seq[-seq_length:]).reshape(1, seq_length, 1)
