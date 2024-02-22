@@ -24,17 +24,6 @@ def create_sequences(data, seq_length):
         y.append(data[i + seq_length])
     return np.array(X), np.array(y)
 
-# Prepare the data for prediction
-data = tickerDf['Close'].values.reshape(-1, 1)
-scaler = MinMaxScaler(feature_range=(0, 1))
-scaled_data = scaler.fit_transform(data)
-seq_length = 60
-X, y = create_sequences(scaled_data, seq_length)
-
-# Print shapes for debugging
-print("Shape of X (input data for LSTM layer):", X.shape)
-print("Shape of y (output data for LSTM layer):", y.shape)
-
 # Set custom theme colors
 PRIMARY_COLOR = "#E63946"  # Red
 BACKGROUND_COLOR = "#F1FAEE"  # Light green
