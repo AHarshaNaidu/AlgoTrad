@@ -16,6 +16,9 @@ from pypfopt import risk_models
 from pypfopt import expected_returns
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+# Initialize tickerDf DataFrame
+tickerDf = None
+
 # Function to create sequences for LSTM model
 def create_sequences(data, seq_length):
     X, y = [], []
@@ -37,9 +40,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Initialize tickerDf
-tickerDf = pd.DataFrame()
-
 # About page content
 about_content = """
 # Algorithmic Trading Strategies
@@ -60,7 +60,6 @@ selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
-
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -82,7 +81,7 @@ elif selected_tab == "Stock Analysis":
     st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
-    if not tickerDf.empty and 'Close' in tickerDf.columns and len(tickerDf) > 1:
+    if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Display Daily Returns
         st.header('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
@@ -133,8 +132,8 @@ elif selected_tab == "Stock Price Prediction":
 
     st.subheader(f"Stock Price Prediction: {tickerSymbol} - {string_name}")
 
+    # Train the model with historical data
     if st.sidebar.button('Train Model'):
-        # Train the model with historical data
         start_date = datetime.date(2019, 1, 1)
         end_date = datetime.date.today()
         tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
@@ -155,9 +154,17 @@ elif selected_tab == "Stock Price Prediction":
 
         st.success('Model trained successfully!')
 
+    # Predict future stock prices
     if st.sidebar.button('Predict Future'):
-        if not tickerDf.empty and 'Close' in tickerDf.columns and len(tickerDf) > 1:
+        if tickerDf is None:
+            st.error("Please train the model first.")
+        elif 'Close' not in tickerDf.columns:
+            st.error("Failed to predict. Please check if the 'Close' column exists.")
+        elif len(tickerDf) <= 1:
+            st.error("Not enough data points to predict. Please select a different time period.")
+        else:
             # Prepare the data for prediction
+            data = tickerDf['Close'].values.reshape(-1, 1)
             scaled_data = scaler.transform(data)
 
             # Generate future sequences for prediction
@@ -188,9 +195,6 @@ elif selected_tab == "Stock Price Prediction":
             fig_future.add_trace(go.Scatter(x=future_dates, y=future_preds.flatten(), mode='lines+markers', name='Predicted Prices'))
             fig_future.update_layout(title=f'Future Stock Price Predictions for the next {future_days} days', xaxis_title='Date', yaxis_title='Stock Price')
             st.plotly_chart(fig_future)
-
-        else:
-            st.error("Failed to predict. Please check if the 'Close' column exists and there are enough data points.")
 
 # Long-Term Portfolio Optimization
 elif selected_tab == "Long-Term Portfolio Optimization":
