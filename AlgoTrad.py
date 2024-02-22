@@ -148,10 +148,14 @@ elif selected_tab == "Stock Price Prediction":
         else:
             # Prepare the data for prediction
             data = tickerDf['Close'].values.reshape(-1, 1)
+            print("Shape of data:", data.shape)  # Print the shape of the input data
             scaler = MinMaxScaler(feature_range=(0, 1))
             scaled_data = scaler.fit_transform(data)
             seq_length = 60
             X, y = create_sequences(scaled_data, seq_length)
+
+            # Print the shape of the input data for the LSTM layer
+            print("Shape of X (input data for LSTM layer):", X.shape)
 
             # Build the LSTM model
             model = Sequential()
