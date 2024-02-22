@@ -129,13 +129,6 @@ elif selected_tab == "Stock Price Prediction":
 
     st.subheader(f"Stock Price Prediction: {tickerSymbol} - {string_name}")
 
-    # Build the LSTM model
-    model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
-    model.add(LSTM(units=50))
-    model.add(Dense(units=1))
-    model.compile(optimizer='adam', loss='mean_squared_error')
-
     if st.sidebar.button('Train Model'):
         # Train the model with historical data
         start_date = datetime.date(2019, 1, 1)
@@ -146,6 +139,14 @@ elif selected_tab == "Stock Price Prediction":
         scaled_data = scaler.fit_transform(data)
         seq_length = 60
         X, y = create_sequences(scaled_data, seq_length)
+
+        # Build the LSTM model
+        model = Sequential()
+        model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
+        model.add(LSTM(units=50))
+        model.add(Dense(units=1))
+        model.compile(optimizer='adam', loss='mean_squared_error')
+
         model.fit(X, y, epochs=20, batch_size=64)
 
         st.success('Model trained successfully!')
