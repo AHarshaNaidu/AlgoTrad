@@ -46,6 +46,48 @@ stock price prediction using LSTM, and portfolio optimization.
 # Sidebar menu
 selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
 
+# Interactive Visualization Section
+if selected_tab in ["Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"]:
+    st.sidebar.subheader("Visualization Options")
+    visualization_option = st.sidebar.selectbox("Select Visualization", ["Historical Data", "Model Predictions", "Portfolio Performance"])
+
+    # Interactive Visualization based on user selection
+    if visualization_option == "Historical Data":
+        # Display interactive chart for historical stock data
+        st.subheader("Interactive Historical Stock Data Visualization")
+        fig_historical = go.Figure()
+        # Add traces for each column in tickerDf
+        for column in tickerDf.columns:
+            fig_historical.add_trace(go.Scatter(x=tickerDf.index, y=tickerDf[column], mode="lines", name=column))
+        fig_historical.update_layout(title="Historical Stock Data",
+                                     xaxis_title="Date",
+                                     yaxis_title="Value")
+        st.plotly_chart(fig_historical)
+
+    elif visualization_option == "Model Predictions":
+        # Display interactive chart for actual vs predicted prices
+        st.subheader("Interactive Actual vs Predicted Prices Visualization")
+        fig_pred = go.Figure()
+        fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
+        fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
+        fig_pred.update_layout(title='Actual vs Predicted Prices',
+                               xaxis_title='Time',
+                               yaxis_title='Price')
+        st.plotly_chart(fig_pred)
+
+    elif visualization_option == "Portfolio Performance":
+        # Display interactive chart for efficient frontier
+        st.subheader("Interactive Efficient Frontier Visualization")
+        fig_ef = go.Figure()
+        for ticker in tickers:
+            fig_ef.add_trace(go.Scatter(x=np.sqrt(np.diag(Sigma)), y=mu, mode='markers', name=ticker))
+        # Highlight the optimized portfolio
+        fig_ef.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
+        fig_ef.update_layout(title='Efficient Frontier',
+                             xaxis_title='Annual Volatility',
+                             yaxis_title='Expected Annual Return')
+        st.plotly_chart(fig_ef)
+
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
