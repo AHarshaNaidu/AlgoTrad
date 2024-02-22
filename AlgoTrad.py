@@ -141,52 +141,52 @@ elif selected_tab == "Stock Price Prediction":
     elif len(tickerDf) <= 1:
         st.error("Not enough data points to predict. Please select a different time period.")
     else:
-       # Prepare the data for prediction
-data = tickerDf['Close'].values.reshape(-1, 1)
-scaler = MinMaxScaler(feature_range=(0, 1))
-scaled_data = scaler.fit_transform(data)
-seq_length = 60
-X, y = create_sequences(scaled_data, seq_length)
+        # Prepare the data for prediction
+        data = tickerDf['Close'].values.reshape(-1, 1)
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaled_data = scaler.fit_transform(data)
+        seq_length = 60
+        X, y = create_sequences(scaled_data, seq_length)
 
-# Print shapes for debugging
-print("Shape of X (input data for LSTM layer):", X.shape)
-print("Shape of y (output data for LSTM layer):", y.shape)
+        # Print shapes for debugging
+        print("Shape of X (input data for LSTM layer):", X.shape)
+        print("Shape of y (output data for LSTM layer):", y.shape)
 
-# Build the LSTM model
-model = Sequential()
-model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))  # Modify input_shape
-model.add(LSTM(units=50))
-model.add(Dense(units=1))
-model.compile(optimizer='adam', loss='mean_squared_error')
+        # Build the LSTM model
+        model = Sequential()
+        model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))  # Modify input_shape
+        model.add(LSTM(units=50))
+        model.add(Dense(units=1))
+        model.compile(optimizer='adam', loss='mean_squared_error')
 
-model.fit(X, y, epochs=20, batch_size=64)
+        model.fit(X, y, epochs=20, batch_size=64)
 
-# Generate future sequences for prediction
-future_seq = scaled_data[-seq_length:].tolist()
-future_preds = []
-for _ in range(future_days):
-    current_seq = np.array(future_seq[-seq_length:]).reshape(1, seq_length, 1)
-    future_pred = model.predict(current_seq)[0][0]
-    future_preds.append(future_pred)
-    future_seq.append([future_pred])
+        # Generate future sequences for prediction
+        future_seq = scaled_data[-seq_length:].tolist()
+        future_preds = []
+        for _ in range(future_days):
+            current_seq = np.array(future_seq[-seq_length:]).reshape(1, seq_length, 1)
+            future_pred = model.predict(current_seq)[0][0]
+            future_preds.append(future_pred)
+            future_seq.append([future_pred])
 
-# Inverse transform the predictions to get actual stock prices
-future_preds = scaler.inverse_transform(np.array(future_preds).reshape(-1, 1))
+        # Inverse transform the predictions to get actual stock prices
+        future_preds = scaler.inverse_transform(np.array(future_preds).reshape(-1, 1))
 
-# Generate future dates for plotting
-future_dates = [tickerDf.index[-1] + datetime.timedelta(days=i + 1) for i in range(future_days)]
+        # Generate future dates for plotting
+        future_dates = [tickerDf.index[-1] + datetime.timedelta(days=i + 1) for i in range(future_days)]
 
-# Display future predictions
-st.header(f'Future Stock Price Predictions for the next {future_days} days')
-future_df = pd.DataFrame({'Date': future_dates, 'Predicted Price': future_preds.flatten()})
-st.write(future_df)
+        # Display future predictions
+        st.header(f'Future Stock Price Predictions for the next {future_days} days')
+        future_df = pd.DataFrame({'Date': future_dates, 'Predicted Price': future_preds.flatten()})
+        st.write(future_df)
 
-# Plot future predictions
-fig_future = go.Figure()
-fig_future.add_trace(go.Scatter(x=tickerDf.index, y=tickerDf['Close'], mode='lines', name='Historical Data'))
-fig_future.add_trace(go.Scatter(x=future_dates, y=future_preds.flatten(), mode='lines+markers', name='Predicted Prices'))
-fig_future.update_layout(title=f'Future Stock Price Predictions for the next {future_days} days', xaxis_title='Date', yaxis_title='Stock Price')
-st.plotly_chart(fig_future)
+        # Plot future predictions
+        fig_future = go.Figure()
+        fig_future.add_trace(go.Scatter(x=tickerDf.index, y=tickerDf['Close'], mode='lines', name='Historical Data'))
+        fig_future.add_trace(go.Scatter(x=future_dates, y=future_preds.flatten(), mode='lines+markers', name='Predicted Prices'))
+        fig_future.update_layout(title=f'Future Stock Price Predictions for the next {future_days} days', xaxis_title='Date', yaxis_title='Stock Price')
+        st.plotly_chart(fig_future)
 
 # Long-Term Portfolio Optimization
 elif selected_tab == "Long-Term Portfolio Optimization":
