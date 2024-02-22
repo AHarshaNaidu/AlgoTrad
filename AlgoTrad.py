@@ -134,8 +134,8 @@ elif selected_tab == "Stock Price Prediction":
 
     # Ticker data
     st.header('Historical Stock Data')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
+    end_date = datetime.date.today()
+    start_date = end_date - datetime.timedelta(days=future_days)
     tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
 
     if st.button('Predict Future'):
