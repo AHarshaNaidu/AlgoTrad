@@ -129,61 +129,51 @@ elif selected_tab == "Stock Price Prediction":
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
-        # Stock Price Prediction using LSTM
-        st.header('Stock Price Prediction using LSTM')
-
         # Prepare the data for prediction
         data = tickerDf['Close'].values.reshape(-1, 1)
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaled_data = scaler.fit_transform(data)
 
-        # Create sequences
-        def create_sequences(data, seq_length):
-            X, y = [], []
-            for i in range(len(data) - seq_length):
-                X.append(data[i:i + seq_length])
-                y.append(data[i + seq_length])
-            return np.array(X), np.array(y)
-
+        # Create sequences using all historical data
         seq_length = 60
         X, y = create_sequences(scaled_data, seq_length)
 
-        # Split data into training and testing sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
-        # Build the LSTM model
+        # Build and train the LSTM model using all historical data
         model = Sequential()
-        model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+        model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
         model.add(LSTM(units=50))
         model.add(Dense(units=1))
-
-        # Compile and fit the model
         model.compile(optimizer='adam', loss='mean_squared_error')
-        model.fit(X_train, y_train, epochs=20, batch_size=64)
+        model.fit(X, y, epochs=20, batch_size=64)
 
-        # Make predictions
-        predictions = model.predict(X_test)
-        predictions = scaler.inverse_transform(predictions)
+        # Generate future sequences for prediction
+        future_seq = scaled_data[-seq_length:].tolist()
 
-        # Calculate evaluation metrics
-        mse = mean_squared_error(y_test, predictions)
-        mae = mean_absolute_error(y_test, predictions)
+        # Predict future stock prices
+        future_preds = []
+        for _ in range(30):  # Predicting 30 days into the future
+            current_seq = np.array(future_seq[-seq_length:]).reshape(1, seq_length, 1)
+            future_pred = model.predict(current_seq)[0][0]
+            future_preds.append(future_pred)
+            future_seq.append([future_pred])
 
-        # Display evaluation results
-        st.subheader('Model Evaluation')
-        st.write(f'Mean Squared Error (MSE): {mse:.2f}')
-        st.write(f'Mean Absolute Error (MAE): {mae:.2f}')
+        # Inverse transform the predictions to get actual stock prices
+        future_preds = scaler.inverse_transform(np.array(future_preds).reshape(-1, 1))
 
-        # Plot actual vs predicted prices
-        st.header('Actual vs Predicted Prices')
-        prediction_df = pd.DataFrame({'Actual': scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), 'Predicted': predictions.flatten()})
-        st.write(prediction_df)
+        # Generate future dates for plotting
+        future_dates = [tickerDf.index[-1] + datetime.timedelta(days=i+1) for i in range(30)]
 
-        fig_pred = go.Figure()
-        fig_pred.add_trace(go.Scatter(x=np.arange(len(y_test)), y=scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(), mode='lines', name='Actual'))
-        fig_pred.add_trace(go.Scatter(x=np.arange(len(predictions)), y=predictions.flatten(), mode='lines', name='Predicted'))
-        fig_pred.update_layout(title='Actual vs Predicted Prices')
-        st.plotly_chart(fig_pred)
+        # Display future predictions
+        st.header('Future Stock Price Predictions')
+        future_df = pd.DataFrame({'Date': future_dates, 'Predicted Price': future_preds.flatten()})
+        st.write(future_df)
+
+        # Plot future predictions
+        fig_future = go.Figure()
+        fig_future.add_trace(go.Scatter(x=tickerDf.index, y=tickerDf['Close'], mode='lines', name='Historical Data'))
+        fig_future.add_trace(go.Scatter(x=future_dates, y=future_preds.flatten(), mode='lines', name='Predicted Prices'))
+        fig_future.update_layout(title='Future Stock Price Predictions', xaxis_title='Date', yaxis_title='Stock Price')
+        st.plotly_chart(fig_future)
 
     else:
         st.error("Failed to compute returns. Please check if the 'Close' column exists and there are enough data points.")
