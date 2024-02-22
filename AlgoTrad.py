@@ -153,8 +153,9 @@ elif selected_tab == "Stock Price Prediction":
         print("Shape of y (output data for LSTM layer):", y.shape)
 
         # Build the LSTM model
+        print("Shape of X (input data for LSTM layer):", X.shape)  # Add this line for debugging
         model = Sequential()
-        model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
+        model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))  # Modify input_shape
         model.add(LSTM(units=50))
         model.add(Dense(units=1))
         model.compile(optimizer='adam', loss='mean_squared_error')
