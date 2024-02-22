@@ -37,6 +37,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Initialize tickerDf
+tickerDf = pd.DataFrame()
+
 # About page content
 about_content = """
 # Algorithmic Trading Strategies
@@ -57,6 +60,7 @@ selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "
 # About page
 if selected_tab == "About":
     st.markdown(about_content)
+
 # Stock Analysis
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
@@ -78,7 +82,7 @@ elif selected_tab == "Stock Analysis":
     st.write(tickerDf)
 
     # Check if 'Close' column exists and there are enough data points
-    if 'Close' in tickerDf.columns and len(tickerDf) > 1:
+    if not tickerDf.empty and 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Display Daily Returns
         st.header('Daily Returns')
         daily_returns = tickerDf['Close'].pct_change()
@@ -152,11 +156,7 @@ elif selected_tab == "Stock Price Prediction":
         st.success('Model trained successfully!')
 
     if st.sidebar.button('Predict Future'):
-        if 'Close' not in tickerDf.columns:
-            st.error("Failed to compute returns. Please check if the 'Close' column exists.")
-        elif len(tickerDf) <= 1:
-            st.error("Not enough data points to predict. Please select a different time period.")
-        else:
+        if not tickerDf.empty and 'Close' in tickerDf.columns and len(tickerDf) > 1:
             # Prepare the data for prediction
             scaled_data = scaler.transform(data)
 
@@ -188,6 +188,9 @@ elif selected_tab == "Stock Price Prediction":
             fig_future.add_trace(go.Scatter(x=future_dates, y=future_preds.flatten(), mode='lines+markers', name='Predicted Prices'))
             fig_future.update_layout(title=f'Future Stock Price Predictions for the next {future_days} days', xaxis_title='Date', yaxis_title='Stock Price')
             st.plotly_chart(fig_future)
+
+        else:
+            st.error("Failed to predict. Please check if the 'Close' column exists and there are enough data points.")
 
 # Long-Term Portfolio Optimization
 elif selected_tab == "Long-Term Portfolio Optimization":
