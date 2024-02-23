@@ -303,3 +303,4 @@ elif selected_tab == "Short-Term Portfolio Optimization":
 
     else:
         st.error("No data available for selected tickers. Please check your input.")
+check
