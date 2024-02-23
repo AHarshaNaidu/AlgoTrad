@@ -44,7 +44,7 @@ stock price prediction using LSTM, and portfolio optimization.
 """
 
 # Sidebar menu
-selected_tab = st.sidebar.radio("Select Analysis", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
+selected_tab = st.sidebar.radio("Select", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
 
 # About page
 if selected_tab == "About":
