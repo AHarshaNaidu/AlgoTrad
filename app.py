@@ -43,11 +43,11 @@ Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.
 
 Here's what you can do:
 
-1. Analyze Stocks: Dive deep into historical stock data, spot market trends, and patterns using technical analysis indicators like Bollinger Bands and Ichimoku Cloud.
+1. **Analyze Stocks**: Dive deep into historical stock data, spot market trends, and patterns using technical analysis indicators like Bollinger Bands and Ichimoku Cloud.
 
-2. Predict Stock Prices: Want to know where a stock is headed? Input a stock ticker symbol, and our powerful machine learning model will predict its future prices based on historical data.
+2. **Predict Stock Prices**: Want to know where a stock is headed? Input a stock ticker symbol, and our powerful machine learning model will predict its future prices based on historical data.
 
-3. Optimize Portfolios: Construct optimized portfolios for both long-term and short-term investment goals. Maximize your returns while minimizing risks using our advanced portfolio optimization algorithms.
+3. **Optimize Portfolios**: Construct optimized portfolios for both long-term and short-term investment goals. Maximize your returns while minimizing risks using our advanced portfolio optimization algorithms.
 
 Our platform is user-friendly and packed with features to help you make informed investment decisions. Start exploring now and take control of your financial future!".
 """
