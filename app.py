@@ -31,13 +31,9 @@ st.set_page_config(
 
 # About page content
 about_content = """
-# Algorithmic Trading Strategies
+# AlgoTrad
 
-**Scale +91 Hackathon | FFI 2024**
-
-**Team GARUDA**
-
-Developed by: Akula Sri Harsha Sri Sai Hanuman ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
+Developed by: Akula Harsha Naidu ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
 
 "Welcome to our cutting-edge algorithmic trading strategies platform! With our tool, you can take your investment strategy to the next level.
 
