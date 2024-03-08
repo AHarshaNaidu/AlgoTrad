@@ -34,7 +34,7 @@ st.set_page_config(
 about_content = """
 # trAIde
 
-made by: ([HARSHA NAIDU AKULA](https://www.linkedin.com/in/AHarshaNaidu))
+made by: [HARSHA NAIDU AKULA](https://www.linkedin.com/in/AHarshaNaidu)
 
 "Welcome to our cutting-edge algorithmic trading strategies platform! With our tool, you can take your investment strategy to the next level.
 
