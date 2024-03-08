@@ -31,9 +31,9 @@ st.set_page_config(
 
 # About page content
 about_content = """
-# AlgoTrad
+# trAIde
 
-Developed by: Akula Harsha Naidu ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
+made by: Harsha Naidu Akula ([LinkedIn](https://www.linkedin.com/in/AHarshaNaidu))
 
 "Welcome to our cutting-edge algorithmic trading strategies platform! With our tool, you can take your investment strategy to the next level.
 
