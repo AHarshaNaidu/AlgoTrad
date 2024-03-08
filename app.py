@@ -17,13 +17,25 @@ from pypfopt import expected_returns
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 # Set custom theme colors
-PRIMARY_COLOR = "#E63946"  # Red
-BACKGROUND_COLOR = "#F1FAEE"  # Light green
-TEXT_COLOR = "#264653"  # Dark blue
+st.markdown("""
+<style>
+body {
+    background-color: #000000;
+    color: #264653;
+}
+.sidebar .sidebar-content {
+    background-color: #996515;
+    color: #264653;
+}
+.css-17eq0hr {
+    color: #674019;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Set page configuration
 st.set_page_config(
-    page_title="Algorithmic Trading Strategies",
+    page_title="trAIde",
     page_icon=":chart_with_upwards_trend:",
     layout="wide",
     initial_sidebar_state="expanded",
