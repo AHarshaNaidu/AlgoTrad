@@ -17,10 +17,10 @@ from pypfopt import expected_returns
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 # Set custom theme colors
-PRIMARY_COLOR = "#674019"  # Red
-BACKGROUND_COLOR = "#000000"  # Light green
-TEXT_COLOR = "#FAFAFA"  # Dark blue
-SECONDARY_BACKGROUND_COLOR = "#996515"
+base="dark"
+primaryColor="#674019"
+backgroundColor="#000000"
+secondaryBackgroundColor="#996515"
 
 # Set page configuration
 st.set_page_config(
