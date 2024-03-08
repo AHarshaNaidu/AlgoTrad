@@ -24,7 +24,7 @@ SECONDARY_BACKGROUND_COLOR = "#996515"
 
 # Set page configuration
 st.set_page_config(
-    page_title="Algorithmic Trading Strategies",
+    page_title="trAIde",
     page_icon=":chart_with_upwards_trend:",
     layout="wide",
     initial_sidebar_state="expanded",
