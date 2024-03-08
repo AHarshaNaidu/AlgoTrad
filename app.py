@@ -16,22 +16,84 @@ from pypfopt import risk_models
 from pypfopt import expected_returns
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-# Set custom theme colors
-st.markdown("""
+# Custom CSS for theme
+st.markdown(
+"""
 <style>
 body {
     background-color: #000000;
     color: #264653;
 }
+
 .sidebar .sidebar-content {
     background-color: #996515;
     color: #264653;
 }
-.css-17eq0hr {
-    color: #674019;
+
+.stRadio > div > div > label[data-baseweb='radio']:nth-child(2)::before, 
+.stRadio > div > div > label[data-baseweb='radio']:nth-child(3)::before {
+    background-color: #674019;
+}
+
+.stButton>button {
+    background-color: #674019;
+}
+
+.stTextInput>div>div>input {
+    background-color: #674019;
+    color: #264653;
+}
+
+.stTextInput>div>div>input:focus {
+    border-color: #674019;
+}
+
+.stSelectbox>div>div>div[role='button'] {
+    background-color: #674019;
+    color: #264653;
+}
+
+.stNumberInput>div>div>input {
+    background-color: #674019;
+    color: #264653;
+}
+
+.stNumberInput>div>div>input:focus {
+    border-color: #674019;
+}
+
+.stDataFrame>div>div>div>div>div>table {
+    background-color: #674019;
+    color: #264653;
+}
+
+.stDataFrame>div>div>div>div>div>table>thead {
+    color: #264653;
+}
+
+.stDataFrame>div>div>div>div>div>table>thead>tr>th {
+    border-bottom: 1px solid #264653;
+}
+
+.stDataFrame>div>div>div>div>div>table>tbody>tr>td {
+    border-bottom: 1px solid #264653;
+}
+
+.stMarkdown {
+    color: #264653;
+}
+
+.stMarkdown a {
+    color: #0096c7;
+}
+
+.stMarkdown a:hover {
+    color: #0077b6;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+unsafe_allow_html=True
+)
 
 # Set page configuration
 st.set_page_config(
