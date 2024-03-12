@@ -126,17 +126,10 @@ elif selected_tab == "Stock Price Prediction":
 
     st.subheader(f"Stock Price Prediction: {tickerSymbol} - {string_name}")
 
-    # Ticker data
-    st.header('Historical Stock Data')
-    start_date = st.sidebar.date_input("Start Date", datetime.date(2019, 1, 1))
-    end_date = st.sidebar.date_input("End Date", datetime.date(2021, 1, 31))
-    tickerDf = tickerData.history(period='1d', start=start_date, end=end_date)
-    st.write(tickerDf)
-
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
         # Stock Price Prediction using LSTM
-        st.header('Stock Price Prediction using LSTM')
+        st.header('Stock Price Prediction')
 
         # Prepare the data for prediction
         data = tickerDf['Close'].values.reshape(-1, 1)
