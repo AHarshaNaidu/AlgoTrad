@@ -128,8 +128,6 @@ elif selected_tab == "Stock Price Prediction":
 
     # Check if 'Close' column exists and there are enough data points
     if 'Close' in tickerDf.columns and len(tickerDf) > 1:
-        # Stock Price Prediction using LSTM
-        st.header('Stock Price Prediction')
 
         # Prepare the data for prediction
         data = tickerDf['Close'].values.reshape(-1, 1)
