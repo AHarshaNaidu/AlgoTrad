@@ -36,7 +36,7 @@ about_content = """
 
 made by: [HARSHA NAIDU AKULA](https://www.linkedin.com/in/AHarshaNaidu)
 
-"Welcome to our cutting-edge algorithmic trading strategies platform! With our tool, you can take your investment strategy to the next level.
+"Welcome to trAIde, a cutting-edge trading decision making platform! With this tool, you can take your investment strategy to the next level.
 
 Here's what you can do:
 
