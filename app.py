@@ -48,7 +48,7 @@ Our platform is user-friendly and packed with features to help you make informed
 """
 
 # Sidebar menu
-selected_tab = st.sidebar.radio("Select", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
+selected_tab = st.sidebar.radio("Select", ("About", "Stock Analysis", "Stock Price Prediction"))
 
 # About page
 if selected_tab == "About":
