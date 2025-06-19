@@ -34,7 +34,7 @@ st.set_page_config(
 about_content = """
 # trAIde
 
-developed by: [HARSHA](https://www.linkedin.com/in/AHarshaNaidu)
+developed by: [HARSHA](https://www.linkedin.com/in/AHarshaNaidu) - Top 50 (Prototyping) Fintech Festival India (FFI) 2024
 
 "Welcome to trAIde, a cutting-edge trading decision making platform! With this tool, you can take your investment strategy to the next level.
 
