@@ -14,7 +14,6 @@ from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models, expected_returns
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-# Set page config
 st.set_page_config(
     page_title="trAIde",
     page_icon=":chart_with_upwards_trend:",
@@ -22,7 +21,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# About section
 about_content = """
 # trAIde
 
@@ -37,11 +35,9 @@ Welcome to trAIde, a cutting-edge trading decision making platform!
 
 selected_tab = st.sidebar.radio("Select", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
 
-# --- ABOUT ---
 if selected_tab == "About":
     st.markdown(about_content)
 
-# --- STOCK ANALYSIS ---
 elif selected_tab == "Stock Analysis":
     st.sidebar.header('Stock Analysis Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
@@ -85,13 +81,12 @@ elif selected_tab == "Stock Analysis":
             go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_a'], name='Ichimoku A'),
             go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_b'], name='Ichimoku B'),
             go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_base_line'], name='Base Line'),
-            go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')],
-            layout=go.Layout(title='Ichimoku Cloud'))
+            go.Scatter(x=tickerDf.index, y=tickerDf['ichimoku_conversion_line'], name='Conversion Line')
+        ])
         st.plotly_chart(fig_ichimoku)
     else:
         st.error("Insufficient data or missing 'Close' column.")
 
-# --- STOCK PRICE PREDICTION ---
 elif selected_tab == "Stock Price Prediction":
     st.sidebar.header('Stock Prediction Parameters')
     tickerSymbol = st.sidebar.text_input('Enter Stock Ticker Symbol', 'AAPL')
@@ -148,29 +143,33 @@ elif selected_tab == "Stock Price Prediction":
     else:
         st.error("Insufficient data or missing 'Close' column.")
 
-# --- LONG-TERM PORTFOLIO OPTIMIZATION ---
-elif selected_tab == "Long-Term Portfolio Optimization":
-    st.sidebar.header('Long-Term Portfolio Optimization Parameters')
+elif selected_tab == "Long-Term Portfolio Optimization" or selected_tab == "Short-Term Portfolio Optimization":
+    st.sidebar.header(f'{selected_tab} Parameters')
     tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
     tickers = [x.strip() for x in tickerSymbols.split(',')]
 
-    raw_data = yf.download(tickers)
+    raw_data = yf.download(tickers, group_by='ticker')
+
     if raw_data.empty:
         st.error("No data fetched. Please check the ticker symbols.")
         st.stop()
 
-    if 'Adj Close' in raw_data.columns:
-        data = raw_data['Adj Close']
-    elif isinstance(raw_data.columns, pd.MultiIndex) and 'Adj Close' in raw_data.columns.get_level_values(0):
-        data = raw_data['Adj Close']
-    else:
+    try:
+        if len(tickers) == 1:
+            data = raw_data['Adj Close'].to_frame(tickers[0])
+        else:
+            data = pd.concat([raw_data[ticker]['Adj Close'] for ticker in tickers], axis=1)
+            data.columns = tickers
+    except Exception:
         st.error("'Adj Close' not found in the data.")
         st.stop()
 
-    if len(tickers) == 1:
-        data = data.to_frame(tickers[0])
+    if selected_tab == "Short-Term Portfolio Optimization":
+        data = data.iloc[-30:]
+        mu = expected_returns.ema_historical_return(data)
+    else:
+        mu = expected_returns.mean_historical_return(data)
 
-    mu = expected_returns.mean_historical_return(data)
     Sigma = risk_models.sample_cov(data)
     ef = EfficientFrontier(mu, Sigma)
     raw_weights = ef.max_sharpe()
@@ -192,55 +191,6 @@ elif selected_tab == "Long-Term Portfolio Optimization":
     st.plotly_chart(fig)
 
     st.subheader('Portfolio Metrics')
-    st.write(f'Expected Annual Return: {expected_return:.2%}')
-    st.write(f'Annual Volatility: {annual_volatility:.2%}')
-    st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
-
-# --- SHORT-TERM PORTFOLIO OPTIMIZATION ---
-elif selected_tab == "Short-Term Portfolio Optimization":
-    st.sidebar.header('Short-Term Portfolio Optimization Parameters')
-    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
-    tickers = [x.strip() for x in tickerSymbols.split(',')]
-
-    raw_data = yf.download(tickers)
-    if raw_data.empty:
-        st.error("No data fetched. Please check the ticker symbols.")
-        st.stop()
-
-    if 'Adj Close' in raw_data.columns:
-        data = raw_data['Adj Close']
-    elif isinstance(raw_data.columns, pd.MultiIndex) and 'Adj Close' in raw_data.columns.get_level_values(0):
-        data = raw_data['Adj Close']
-    else:
-        st.error("'Adj Close' not found in the data.")
-        st.stop()
-
-    if len(tickers) == 1:
-        data = data.to_frame(tickers[0])
-
-    short_term_data = data.iloc[-30:]
-    mu = expected_returns.ema_historical_return(short_term_data)
-    Sigma = risk_models.sample_cov(short_term_data)
-    ef = EfficientFrontier(mu, Sigma)
-    raw_weights = ef.max_sharpe()
-    cleaned_weights = ef.clean_weights()
-    expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
-
-    st.subheader('Selected Ticker Data (Short-Term)')
-    st.write(short_term_data)
-
-    st.subheader('Optimized Portfolio Weights (Short-Term)')
-    st.write(pd.Series(cleaned_weights))
-
-    st.subheader('Efficient Frontier (Short-Term)')
-    fig = go.Figure()
-    for ticker in tickers:
-        fig.add_trace(go.Scatter(x=[Sigma.loc[ticker, ticker] ** 0.5], y=[mu[ticker]], mode='markers', name=ticker))
-    fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio (Short-Term)'))
-    fig.update_layout(title='Efficient Frontier (Short-Term)', xaxis_title='Annual Volatility', yaxis_title='Expected Annual Return')
-    st.plotly_chart(fig)
-
-    st.subheader('Portfolio Metrics (Short-Term)')
     st.write(f'Expected Annual Return: {expected_return:.2%}')
     st.write(f'Annual Volatility: {annual_volatility:.2%}')
     st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
