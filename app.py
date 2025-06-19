@@ -10,8 +10,6 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
-from pypfopt.efficient_frontier import EfficientFrontier
-from pypfopt import risk_models, expected_returns
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 st.set_page_config(
@@ -30,10 +28,9 @@ Welcome to trAIde, a cutting-edge trading decision making platform!
 
 1. **Analyze Stocks**: Use indicators like Bollinger Bands and Ichimoku Cloud.
 2. **Predict Stock Prices**: LSTM-based predictions.
-3. **Optimize Portfolios**: Long-term and short-term risk-return optimization.
 """
 
-selected_tab = st.sidebar.radio("Select", ("About", "Stock Analysis", "Stock Price Prediction", "Long-Term Portfolio Optimization", "Short-Term Portfolio Optimization"))
+selected_tab = st.sidebar.radio("Select", ("About", "Stock Analysis", "Stock Price Prediction"))
 
 if selected_tab == "About":
     st.markdown(about_content)
@@ -142,55 +139,3 @@ elif selected_tab == "Stock Price Prediction":
         st.plotly_chart(fig)
     else:
         st.error("Insufficient data or missing 'Close' column.")
-
-elif selected_tab == "Long-Term Portfolio Optimization" or selected_tab == "Short-Term Portfolio Optimization":
-    st.sidebar.header(f'{selected_tab} Parameters')
-    tickerSymbols = st.sidebar.text_input('Enter Stock Ticker Symbols (comma-separated)', 'AAPL, MSFT, GOOGL')
-    tickers = [x.strip() for x in tickerSymbols.split(',')]
-
-    raw_data = yf.download(tickers, group_by='ticker')
-
-    if raw_data.empty:
-        st.error("No data fetched. Please check the ticker symbols.")
-        st.stop()
-
-    try:
-        if len(tickers) == 1:
-            data = raw_data['Adj Close'].to_frame(tickers[0])
-        else:
-            data = pd.concat([raw_data[ticker]['Adj Close'] for ticker in tickers], axis=1)
-            data.columns = tickers
-    except Exception:
-        st.error("'Adj Close' not found in the data.")
-        st.stop()
-
-    if selected_tab == "Short-Term Portfolio Optimization":
-        data = data.iloc[-30:]
-        mu = expected_returns.ema_historical_return(data)
-    else:
-        mu = expected_returns.mean_historical_return(data)
-
-    Sigma = risk_models.sample_cov(data)
-    ef = EfficientFrontier(mu, Sigma)
-    raw_weights = ef.max_sharpe()
-    cleaned_weights = ef.clean_weights()
-    expected_return, annual_volatility, sharpe_ratio = ef.portfolio_performance(verbose=True)
-
-    st.subheader('Selected Ticker Data')
-    st.write(data)
-
-    st.subheader('Optimized Portfolio Weights')
-    st.write(pd.Series(cleaned_weights))
-
-    st.subheader('Efficient Frontier')
-    fig = go.Figure()
-    for ticker in tickers:
-        fig.add_trace(go.Scatter(x=[Sigma.loc[ticker, ticker] ** 0.5], y=[mu[ticker]], mode='markers', name=ticker))
-    fig.add_trace(go.Scatter(x=[annual_volatility], y=[expected_return], mode='markers', marker=dict(size=15, color='red'), name='Optimized Portfolio'))
-    fig.update_layout(title='Efficient Frontier', xaxis_title='Annual Volatility', yaxis_title='Expected Annual Return')
-    st.plotly_chart(fig)
-
-    st.subheader('Portfolio Metrics')
-    st.write(f'Expected Annual Return: {expected_return:.2%}')
-    st.write(f'Annual Volatility: {annual_volatility:.2%}')
-    st.write(f'Sharpe Ratio: {sharpe_ratio:.2f}')
